@@ -83,7 +83,7 @@ credit-g, public n=100, private n=400, k=400 random submissions, mean of 30 runs
 |---|---|---|---|---|
 | Arena run `m2` (both arms, 3 competitions x 4 rounds) | 202 | 445,584 | 125,231 | $0.082 |
 | Transfer run | 67 | 107,983 | 39,632 | $0.013 |
-| Everything today (incl. smoke tests, aborted runs) | 639 | | | $0.232 |
+| Everything today (incl. smoke tests, aborted runs) | 641 | | | $0.232 |
 
 Cached-token share reported by Crusoe in `usage.prompt_tokens_details`: 0.0027 (Lightning returns `null` for this field, so this undercounts; see the cache probe).
 HOLDOUT final picks beat a plain logistic-regression baseline by 3.22 private-accuracy points on average (baseline 0.741), at $0.0255 of arena inference per point.

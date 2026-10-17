@@ -1254,16 +1254,16 @@
   },
   "cells": 4,
   "submissions_ran": {
-   "gen-0": [
-    9,
+   "naive-final": [
+    2,
     32
    ],
    "holdout-final": [
     16,
     32
    ],
-   "naive-final": [
-    2,
+   "gen-0": [
+    9,
     32
    ]
   },
@@ -1725,27 +1725,27 @@
    "usd": 0.013325550000000004
   },
   "project_total": {
-   "live_calls": 639,
+   "live_calls": 641,
    "replayed_from_local_cache": 134,
-   "total_tokens": 1633238,
-   "usd": 0.2321,
+   "total_tokens": 1633332,
+   "usd": 0.2322,
    "cached_token_share_reported": 0.0027,
    "by_model": {
     "nvidia/Nemotron-3.5-Lightning-30B-A3B": {
-     "calls": 570,
-     "prompt_tokens": 1168288,
-     "completion_tokens": 342088,
+     "calls": 571,
+     "prompt_tokens": 1168322,
+     "completion_tokens": 342102,
      "cached_tokens": 0,
      "calls_reporting_cached": 0,
-     "usd": 0.12684
+     "usd": 0.126845
     },
     "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": {
-     "calls": 69,
-     "prompt_tokens": 90039,
-     "completion_tokens": 32823,
+     "calls": 70,
+     "prompt_tokens": 90072,
+     "completion_tokens": 32836,
      "cached_tokens": 3456,
-     "calls_reporting_cached": 69,
-     "usd": 0.105264
+     "calls_reporting_cached": 70,
+     "usd": 0.105305
     }
    }
   },
