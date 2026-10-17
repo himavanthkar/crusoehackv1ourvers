@@ -83,7 +83,11 @@ def transfer_summary(tr: dict | None) -> dict | None:
     for r in rows:
         if r["final_private"] is not None:
             by_pb.setdefault(r["playbook"], []).append(r["final_private"])
+    cells = len({(r["comp"], r["seed"]) for r in rows})
+    ran = {pb: [sum(r["n_subs"] - r["n_failed"] for r in rows if r["playbook"] == pb), sum(r["n_subs"] for r in rows if r["playbook"] == pb)]
+           for pb in {r["playbook"] for r in rows}}
     return {"rows": rows, "mean_final_private": {k: round(float(np.mean(v)), 5) for k, v in by_pb.items()},
+            "valid_cells": {k: len(v) for k, v in by_pb.items()}, "cells": cells, "submissions_ran": ran,
             "mechanism": tr["mechanism"], "seeds": tr["seeds"], "playbooks": {k: [x["rule"] for x in v] for k, v in tr["playbooks"].items()}}
 
 
@@ -208,7 +212,7 @@ def _plt():
 
 def chart_shakeup(sh: dict, comps: list, path):
     plt = _plt()
-    fig, ax = plt.subplots(figsize=(9, 4.2))
+    fig, ax = plt.subplots(figsize=(9, 5))
     w = 0.2
     x = np.arange(len(comps))
     for i, arm in enumerate(("naive", "holdout")):
@@ -225,7 +229,7 @@ def chart_shakeup(sh: dict, comps: list, path):
     ax.set_ylim(max(0.4, lo), 1.0)
     ax.set_ylabel("accuracy of the final selection")
     ax.set_title("Shake-up: final selection, reported public vs private (labels = inflation)")
-    ax.legend(fontsize=7, loc="lower right")
+    ax.legend(fontsize=7, loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=2)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
     fig.savefig(path, dpi=150)
@@ -260,18 +264,24 @@ def chart_transfer(ts: dict, path):
     fig, ax = plt.subplots(figsize=(7.5, 4))
     x = np.arange(len(comps))
     w = 0.26
-    for i, pb in enumerate(pbs):
-        vals = []
-        for c in comps:
-            v = [r["final_private"] for r in rows if r["comp"] == c and r["playbook"] == pb and r["final_private"] is not None]
-            vals.append(float(np.mean(v)) if v else 0)
-        b = ax.bar(x + (i - 1) * w, vals, w, color=COLORS[pb], label=pb)
-        ax.bar_label(b, fmt="%.3f", fontsize=8)
-    ax.set_xticks(x, comps, fontsize=8)
     allv = [r["final_private"] for r in rows if r["final_private"]]
-    ax.set_ylim(max(0.4, min(allv) - 0.08) if allv else 0.4, 1.0)
+    floor = max(0.4, min(allv) - 0.08) if allv else 0.4
+    for i, pb in enumerate(pbs):
+        vals, labels = [], []
+        for c in comps:
+            rr = [r for r in rows if r["comp"] == c and r["playbook"] == pb]
+            v = [r["final_private"] for r in rr if r["final_private"] is not None]
+            ran = f"{sum(r['n_subs'] - r['n_failed'] for r in rr)}/{sum(r['n_subs'] for r in rr)} ran"
+            vals.append(float(np.mean(v)) if v else 0)
+            labels.append(f"{np.mean(v):.3f}\n{ran}" if v else f"no valid\nsubmission\n{ran}")
+        b = ax.bar(x + (i - 1) * w, vals, w, color=COLORS[pb], label=pb)
+        for j, lab in enumerate(labels):
+            ax.text(x[j] + (i - 1) * w, (vals[j] if vals[j] else floor) + 0.004, lab, ha="center", va="bottom", fontsize=7,
+                    color="black" if vals[j] else COLORS[pb])
+    ax.set_xticks(x, comps, fontsize=8)
+    ax.set_ylim(floor, 1.0)
     ax.set_ylabel("private accuracy of final selection")
-    ax.set_title("Transfer to unseen competitions (one fresh round, Ladder board for all)")
+    ax.set_title(f"Transfer to unseen competitions (one fresh round, Ladder board for all; mean over seeds {ts['seeds']})", fontsize=10)
     ax.legend(fontsize=8)
     ax.grid(axis="y", alpha=0.3)
     fig.tight_layout()
@@ -308,15 +318,29 @@ def markdown(res: dict) -> str:
     if res.get("transfer"):
         t = res["transfer"]
         L.append("\n### Transfer to unseen competitions (Ladder board for all three)\n")
+        L.append("Cells: private accuracy of the final selection (submissions that ran / submitted). "
+                 "'no valid submission' means every researcher's code failed in the sandbox.\n")
         L.append("| Competition | Seed | gen-0 (empty) | naive-final | HOLDOUT-final |")
         L.append("|---|---|---|---|---|")
         keys = sorted({(r["comp"], r["seed"]) for r in t["rows"]})
-        for c, s in keys:
-            v = {r["playbook"]: r["final_private"] for r in t["rows"] if r["comp"] == c and r["seed"] == s}
-            f = lambda x: "n/a" if x is None else f"{x:.3f}"
-            L.append(f"| {c} | {s} | {f(v.get('gen-0'))} | {f(v.get('naive-final'))} | {f(v.get('holdout-final'))} |")
+
+        def cell(r):
+            if r is None:
+                return "n/a"
+            ran = f"({r['n_subs'] - r['n_failed']}/{r['n_subs']} ran)"
+            return f"no valid submission {ran}" if r["final_private"] is None else f"{r['final_private']:.3f} {ran}"
+        for c, sd in keys:
+            v = {r["playbook"]: r for r in t["rows"] if r["comp"] == c and r["seed"] == sd}
+            L.append(f"| {c} | {sd} | {cell(v.get('gen-0'))} | {cell(v.get('naive-final'))} | {cell(v.get('holdout-final'))} |")
         m = t["mean_final_private"]
-        L.append(f"| **mean** | | {m.get('gen-0', 0):.3f} | {m.get('naive-final', 0):.3f} | {m.get('holdout-final', 0):.3f} |")
+        fails = {pb: (sum(r["n_failed"] for r in t["rows"] if r["playbook"] == pb), sum(r["n_subs"] for r in t["rows"] if r["playbook"] == pb))
+                 for pb in ("gen-0", "naive-final", "holdout-final")}
+        vc = t["valid_cells"]
+        f = lambda k: f"{m[k]:.3f} over {vc[k]}/{t['cells']} cells" if k in m else "n/a"
+        L.append(f"| **mean of valid picks** | | {f('gen-0')} | {f('naive-final')} | {f('holdout-final')} |")
+        L.append(f"| **submissions that ran** | | {fails['gen-0'][1] - fails['gen-0'][0]}/{fails['gen-0'][1]} | "
+                 f"{fails['naive-final'][1] - fails['naive-final'][0]}/{fails['naive-final'][1]} | "
+                 f"{fails['holdout-final'][1] - fails['holdout-final'][0]}/{fails['holdout-final'][1]} |")
     rs = res.get("resampled_selection")
     if rs:
         L.append(f"\n### Same submissions, two selection rules ({rs['draws']} redraws of the n=100 public set)\n")
@@ -416,6 +440,81 @@ def extra_seeds(run_ids: list[str]) -> dict | None:
     return {"rows": rows, "pooled": agg}
 
 
+def gate_pooled(run_ids: list[str]) -> dict:
+    out = {"naive": {"proposed": 0, "admitted": 0, "rejected": 0, "stripped": 0},
+           "holdout": {"proposed": 0, "admitted": 0, "rejected": 0, "stripped": 0}, "runs": []}
+    for rid in run_ids:
+        a = _load(C.RUNS_DIR / rid / "arena.json")
+        if not a:
+            continue
+        out["runs"].append(rid)
+        g = gate_summary(a)
+        for arm in ("naive", "holdout"):
+            for k, k2 in (("proposed", "proposed"), ("admitted", "admitted"), ("rejected", "rejected"), ("stripped", "evidence_stripped")):
+                out[arm][k] += g[arm][k2]
+    return out
+
+
+def key_findings(res: dict) -> str:
+    """Headline bullets, every number read from results.json."""
+    L = ["### Key findings (generated from results.json)\n"]
+    b = res.get("boosting_bot")
+    if b:
+        k, l = b["boards"]["kaggle"], b["boards"]["ladder"]
+        ik = k["reported_public"]["mean"][-1] - k["private"]["mean"][-1]
+        il = l["reported_public"]["mean"][-1] - l["private"]["mean"][-1]
+        L.append(f"1. **The mechanism works against a zero-skill attacker.** {b['k_max']} random label vectors: the Kaggle board "
+                 f"reports {k['reported_public']['mean'][-1]:.3f} public while private is {k['private']['mean'][-1]:.3f} "
+                 f"(inflation {ik:+.3f}); the Ladder reports {l['reported_public']['mean'][-1]:.3f} vs {l['private']['mean'][-1]:.3f} "
+                 f"({il:+.3f}). With n=100 the Ladder limits the climb but does not remove it.")
+    gp = res.get("gate_pooled")
+    if gp:
+        n, h = gp["naive"], gp["holdout"]
+        L.append(f"2. **The gate changes what the team learns.** Over {len(gp['runs'])} split seeds the naive curator got "
+                 f"{n['admitted']}/{n['proposed']} proposed playbook rules admitted; the HOLDOUT gate admitted {h['admitted']}/{h['proposed']} "
+                 f"and stripped {h['stripped']} citations of submissions whose \"gain\" the Ladder judged to be noise.")
+    t = res.get("transfer")
+    if t:
+        ran, m, vc = t["submissions_ran"], t["mean_final_private"], t["valid_cells"]
+        L.append(f"3. **Learned noise hurts on unseen competitions.** One fresh round on 2 unseen competitions x {len(t['seeds'])} seeds: "
+                 f"submissions that ran: gen-0 {ran['gen-0'][0]}/{ran['gen-0'][1]}, naive-final {ran['naive-final'][0]}/{ran['naive-final'][1]}, "
+                 f"HOLDOUT-final {ran['holdout-final'][0]}/{ran['holdout-final'][1]}. Mean private accuracy of the final pick: "
+                 f"gen-0 {m.get('gen-0', float('nan')):.3f} ({vc.get('gen-0', 0)}/{t['cells']} cells with a valid pick), "
+                 f"naive-final {m.get('naive-final', float('nan')):.3f} ({vc.get('naive-final', 0)}/{t['cells']}), "
+                 f"HOLDOUT-final {m.get('holdout-final', float('nan')):.3f} ({vc.get('holdout-final', 0)}/{t['cells']}). "
+                 f"The naive playbook (every reported gain admitted) steered researchers to HistGradientBoosting with native categorical handling; "
+                 f"on all-numeric blood-transfusion every naive-final submission failed in the sandbox, in both seeds.")
+    sp = res.get("seeds_pooled")
+    rs = res.get("resampled_selection")
+    if sp:
+        n, h = sp["pooled"]["naive"], sp["pooled"]["holdout"]
+        txt = (f"4. **The final-pick shake-up with real LLM teams was small and mixed** (reported honestly). Pooled over {n['n']} "
+               f"competition x seed cells, inflation of the final pick was {n['inflation']['mean']:+.3f} ± {n['inflation']['sd']:.3f} (naive) "
+               f"vs {h['inflation']['mean']:+.3f} ± {h['inflation']['sd']:.3f} (HOLDOUT): no clear difference at this N.")
+        if rs:
+            pk, pl = rs["pooled"]["kaggle"], rs["pooled"]["ladder"]
+            txt += (f" Holding the submissions fixed and redrawing the public set {rs['draws']} times, the Ladder selection rule cut "
+                    f"inflation from {pk['inflation']:+.3f} to {pl['inflation']:+.3f} at a private cost of {(pl['private'] - pk['private']) * 100:+.1f} points. "
+                    f"LLM submissions are highly correlated, so they are far less adversarial than the boosting attack.")
+        L.append(txt)
+    e = res.get("efficiency")
+    cp = res.get("cache_probe")
+    if e:
+        txt = (f"5. **Cheap on Crusoe.** The full two-arm arena run cost ${e['arena_run']['usd']:.3f} "
+               f"({e['arena_run']['calls']} live Nemotron calls); everything today including smoke tests ${e['project_total']['usd']:.2f}.")
+        if cp:
+            sup = next((m for m in cp["models"] if "Super" in m["model"]), None)
+            lig = next((m for m in cp["models"] if "Lightning" in m["model"]), None)
+            if sup and sup["cached_tokens_shared"][0]:
+                txt += (f" MemoryAlloy: with a shared prefix, Nemotron Super reported {sup['cached_tokens_shared'][0]} of "
+                        f"{sup['shared_prefix'][0]['prompt_tokens']} prompt tokens cached (0 with unique prefixes)")
+            if lig:
+                txt += (f"; Lightning's median time-to-first-token was {lig['median_ttft_shared_s']:.3f} s shared vs "
+                        f"{lig['median_ttft_unique_s']:.3f} s unique.")
+        L.append(txt)
+    return "\n".join(L) + "\n"
+
+
 def inject_readme(md: str):
     p = C.ROOT / "README.md"
     if not p.exists():
@@ -438,6 +537,7 @@ if __name__ == "__main__":
     res = build(a.arena, a.transfer)
     md = (C.RESULTS_DIR / "results.md").read_text()
     if a.seeds_runs:
+        res["gate_pooled"] = gate_pooled(a.seeds_runs.split(","))
         es = extra_seeds(a.seeds_runs.split(","))
         if es:
             res["seeds_pooled"] = es
@@ -449,6 +549,8 @@ if __name__ == "__main__":
                 lines.append(f"| {ARM_LABEL[arm]} | {g['n']} | {g['reported_public']['mean']:.3f} | {g['private']['mean']:.3f} | "
                              f"{g['inflation']['mean']:+.3f} ± {g['inflation']['sd']:.3f} |")
             md += "\n".join(lines) + "\n"
-            (C.RESULTS_DIR / "results.md").write_text(md)
+    md = key_findings(res) + "\n" + md
+    (C.RESULTS_DIR / "results.json").write_text(json.dumps(res, indent=1, default=str))
+    (C.RESULTS_DIR / "results.md").write_text(md)
     inject_readme(md)
     print(md)

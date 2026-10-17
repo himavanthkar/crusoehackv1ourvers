@@ -159,10 +159,9 @@ def pick_comp(run_dir: Path) -> str:
     if res.exists():
         r = json.loads(res.read_text())
         if r.get("arena_run") == run_dir.name:
-            sh = r["shakeup"]
-            gaps = {c: (sh["naive"]["per_comp"][c].get("inflation") or 0) - (sh["holdout"]["per_comp"][c].get("inflation") or 0)
-                    for c in arena["comps"]}
-            return max(gaps, key=gaps.get)
+            sh = r["shakeup"]  # default: the competition where the naive pick inflated most
+            infl = {c: sh["naive"]["per_comp"][c].get("inflation") or 0 for c in arena["comps"]}
+            return max(infl, key=infl.get)
     return arena["comps"][0]
 
 
@@ -203,7 +202,10 @@ def epilogue(open_charts: bool):
     t = r.get("transfer")
     if t:
         m = t["mean_final_private"]
-        lines.append("Transfer to unseen competitions (private): " + ", ".join(f"{k} {v:.3f}" for k, v in m.items()))
+        ran = t.get("submissions_ran", {})
+        lines.append("Transfer to unseen competitions, private of final pick (valid cells; submissions that ran): " + "; ".join(
+            f"{k} {m[k]:.3f} ({t['valid_cells'][k]}/{t['cells']}; {ran[k][0]}/{ran[k][1]})" if k in m else f"{k} no valid pick"
+            for k in ("gen-0", "naive-final", "holdout-final")))
     e = r.get("efficiency")
     if e:
         a = e["arena_run"]

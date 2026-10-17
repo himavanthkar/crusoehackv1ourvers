@@ -1107,7 +1107,186 @@
    }
   ]
  },
- "transfer": null,
+ "transfer": {
+  "rows": [
+   {
+    "playbook": "gen-0",
+    "comp": "blood-transfusion-service-center",
+    "seed": 0,
+    "final_id": "bt.R1.B2",
+    "final_reported": 0.78,
+    "final_private": 0.74818,
+    "mean_private_all": 0.68735,
+    "n_subs": 8,
+    "n_failed": 5
+   },
+   {
+    "playbook": "holdout-final",
+    "comp": "blood-transfusion-service-center",
+    "seed": 0,
+    "final_id": "bt.R1.B2",
+    "final_reported": 0.76,
+    "final_private": 0.78102,
+    "mean_private_all": 0.77153,
+    "n_subs": 8,
+    "n_failed": 3
+   },
+   {
+    "playbook": "naive-final",
+    "comp": "blood-transfusion-service-center",
+    "seed": 0,
+    "final_id": null,
+    "final_reported": null,
+    "final_private": null,
+    "mean_private_all": null,
+    "n_subs": 8,
+    "n_failed": 8
+   },
+   {
+    "playbook": "gen-0",
+    "comp": "blood-transfusion-service-center",
+    "seed": 1,
+    "final_id": "bt.R1.C1",
+    "final_reported": 0.74,
+    "final_private": 0.64599,
+    "mean_private_all": 0.64234,
+    "n_subs": 8,
+    "n_failed": 6
+   },
+   {
+    "playbook": "holdout-final",
+    "comp": "blood-transfusion-service-center",
+    "seed": 1,
+    "final_id": "bt.R1.C1",
+    "final_reported": 0.76,
+    "final_private": 0.75547,
+    "mean_private_all": 0.72719,
+    "n_subs": 8,
+    "n_failed": 4
+   },
+   {
+    "playbook": "naive-final",
+    "comp": "blood-transfusion-service-center",
+    "seed": 1,
+    "final_id": null,
+    "final_reported": null,
+    "final_private": null,
+    "mean_private_all": null,
+    "n_subs": 8,
+    "n_failed": 8
+   },
+   {
+    "playbook": "gen-0",
+    "comp": "qsar-biodeg",
+    "seed": 0,
+    "final_id": "qs.R1.A2",
+    "final_reported": 0.91,
+    "final_private": 0.86215,
+    "mean_private_all": 0.86682,
+    "n_subs": 8,
+    "n_failed": 6
+   },
+   {
+    "playbook": "holdout-final",
+    "comp": "qsar-biodeg",
+    "seed": 0,
+    "final_id": "qs.R1.B2",
+    "final_reported": 0.9,
+    "final_private": 0.85981,
+    "mean_private_all": 0.86137,
+    "n_subs": 8,
+    "n_failed": 5
+   },
+   {
+    "playbook": "naive-final",
+    "comp": "qsar-biodeg",
+    "seed": 0,
+    "final_id": "qs.R1.D2",
+    "final_reported": 0.88,
+    "final_private": 0.84813,
+    "mean_private_all": 0.84813,
+    "n_subs": 8,
+    "n_failed": 7
+   },
+   {
+    "playbook": "gen-0",
+    "comp": "qsar-biodeg",
+    "seed": 1,
+    "final_id": "qs.R1.A2",
+    "final_reported": 0.88,
+    "final_private": 0.86449,
+    "mean_private_all": 0.86682,
+    "n_subs": 8,
+    "n_failed": 6
+   },
+   {
+    "playbook": "holdout-final",
+    "comp": "qsar-biodeg",
+    "seed": 1,
+    "final_id": "qs.R1.B1",
+    "final_reported": 0.88,
+    "final_private": 0.85981,
+    "mean_private_all": 0.85222,
+    "n_subs": 8,
+    "n_failed": 4
+   },
+   {
+    "playbook": "naive-final",
+    "comp": "qsar-biodeg",
+    "seed": 1,
+    "final_id": "qs.R1.D2",
+    "final_reported": 0.83,
+    "final_private": 0.86215,
+    "mean_private_all": 0.86215,
+    "n_subs": 8,
+    "n_failed": 7
+   }
+  ],
+  "mean_final_private": {
+   "gen-0": 0.7802,
+   "holdout-final": 0.81403,
+   "naive-final": 0.85514
+  },
+  "valid_cells": {
+   "gen-0": 4,
+   "holdout-final": 4,
+   "naive-final": 2
+  },
+  "cells": 4,
+  "submissions_ran": {
+   "holdout-final": [
+    16,
+    32
+   ],
+   "naive-final": [
+    2,
+    32
+   ],
+   "gen-0": [
+    9,
+    32
+   ]
+  },
+  "mechanism": "ladder",
+  "seeds": [
+   0,
+   1
+  ],
+  "playbooks": {
+   "gen-0": [],
+   "naive-final": [
+    "Start with a strong baseline using LightGBM, as it consistently achieves high performance on tabular data even with minimal tuning.",
+    "Use cross-validated hyperparameter tuning to improve model reliability and performance, especially when combining with strong base learners like LightGBM.",
+    "HistGradientBoostingClassifier with native categorical handling via 'from_dtype' can outperform LightGBM baselines when categorical features are properly encoded.",
+    "Feature engineering combined with LightGBM and ensembling can yield competitive results, even without model family changes.",
+    "Ensembling tuned models (e.g., LightGBM and HistGradientBoosting) via majority vote or blending can stabilize and improve performance.",
+    "Combining LightGBM and HistGradientBoostingClassifier with proper categorical encoding and cross-validated tuning, followed by ensembling, yields robust improvements."
+   ],
+   "holdout-final": [
+    "Start with a strong baseline using gradient boosting (e.g., LightGBM) with default or cross-validated hyperparameters, as it consistently achieves competitive performance even with minimal tuning."
+   ]
+  }
+ },
  "boosting_bot": {
   "competition": "credit-g",
   "public_n": 100,
@@ -1341,7 +1520,193 @@
    }
   }
  },
- "cache_probe": null,
+ "cache_probe": {
+  "ts": "2026-10-17 15:26:20",
+  "models": [
+   {
+    "model": "nvidia/Nemotron-3.5-Lightning-30B-A3B",
+    "k": 6,
+    "warmup": {
+     "ttft_s": 0.234,
+     "prompt_tokens": 4118,
+     "cached_tokens": null
+    },
+    "shared_prefix": [
+     {
+      "ttft_s": 0.603,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.638,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.216,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.289,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.249,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.361,
+      "prompt_tokens": 4118,
+      "cached_tokens": null
+     }
+    ],
+    "unique_prefix": [
+     {
+      "ttft_s": 0.367,
+      "prompt_tokens": 4124,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.372,
+      "prompt_tokens": 4103,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.497,
+      "prompt_tokens": 4144,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.269,
+      "prompt_tokens": 4138,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.444,
+      "prompt_tokens": 4115,
+      "cached_tokens": null
+     },
+     {
+      "ttft_s": 0.509,
+      "prompt_tokens": 4119,
+      "cached_tokens": null
+     }
+    ],
+    "median_ttft_shared_s": 0.325,
+    "median_ttft_unique_s": 0.408,
+    "cached_tokens_shared": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "cached_tokens_unique": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ]
+   },
+   {
+    "model": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B",
+    "k": 6,
+    "warmup": {
+     "ttft_s": 0.472,
+     "prompt_tokens": 4118,
+     "cached_tokens": 0
+    },
+    "shared_prefix": [
+     {
+      "ttft_s": 0.712,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     },
+     {
+      "ttft_s": 0.559,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     },
+     {
+      "ttft_s": 0.699,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     },
+     {
+      "ttft_s": 0.509,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     },
+     {
+      "ttft_s": 0.513,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     },
+     {
+      "ttft_s": 0.41,
+      "prompt_tokens": 4118,
+      "cached_tokens": 3456
+     }
+    ],
+    "unique_prefix": [
+     {
+      "ttft_s": 0.604,
+      "prompt_tokens": 4119,
+      "cached_tokens": 0
+     },
+     {
+      "ttft_s": 0.44,
+      "prompt_tokens": 4084,
+      "cached_tokens": 0
+     },
+     {
+      "ttft_s": 0.527,
+      "prompt_tokens": 4163,
+      "cached_tokens": 0
+     },
+     {
+      "ttft_s": 0.476,
+      "prompt_tokens": 4102,
+      "cached_tokens": 0
+     },
+     {
+      "ttft_s": 1.075,
+      "prompt_tokens": 4101,
+      "cached_tokens": 0
+     },
+     {
+      "ttft_s": 0.616,
+      "prompt_tokens": 4115,
+      "cached_tokens": 0
+     }
+    ],
+    "median_ttft_shared_s": 0.536,
+    "median_ttft_unique_s": 0.566,
+    "cached_tokens_shared": [
+     3456,
+     3456,
+     3456,
+     3456,
+     3456,
+     3456
+    ],
+    "cached_tokens_unique": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   }
+  ]
+ },
  "arena_errors": {},
  "arena_wall_s": 727.5,
  "efficiency": {
@@ -1352,29 +1717,35 @@
    "cached_tokens": 3456,
    "usd": 0.08215835000000002
   },
-  "transfer_run": null,
+  "transfer_run": {
+   "calls": 67,
+   "prompt_tokens": 107983,
+   "completion_tokens": 39632,
+   "cached_tokens": 0,
+   "usd": 0.013325550000000004
+  },
   "project_total": {
-   "live_calls": 585,
-   "replayed_from_local_cache": 88,
-   "total_tokens": 1498736,
-   "usd": 0.2064,
-   "cached_token_share_reported": 0.003,
+   "live_calls": 611,
+   "replayed_from_local_cache": 91,
+   "total_tokens": 1587257,
+   "usd": 0.2206,
+   "cached_token_share_reported": 0.0028,
    "by_model": {
     "nvidia/Nemotron-3.5-Lightning-30B-A3B": {
-     "calls": 526,
-     "prompt_tokens": 1076412,
-     "completion_tokens": 317967,
+     "calls": 549,
+     "prompt_tokens": 1144057,
+     "completion_tokens": 329790,
      "cached_tokens": 0,
      "calls_reporting_cached": 0,
-     "usd": 0.11742
+     "usd": 0.123169
     },
     "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": {
-     "calls": 59,
-     "prompt_tokens": 76650,
-     "completion_tokens": 27707,
+     "calls": 62,
+     "prompt_tokens": 82978,
+     "completion_tokens": 30432,
      "cached_tokens": 3456,
-     "calls_reporting_cached": 59,
-     "usd": 0.088971
+     "calls_reporting_cached": 62,
+     "usd": 0.097409
     }
    }
   },
@@ -1516,20 +1887,314 @@
     "reported": 0.88989,
     "private": 0.8765,
     "inflation": 0.0134
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "credit-g",
+    "rule": "kaggle",
+    "n_subs": 23,
+    "reported": 0.76513,
+    "private": 0.73323,
+    "inflation": 0.0319
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "credit-g",
+    "rule": "ladder",
+    "n_subs": 23,
+    "reported": 0.75434,
+    "private": 0.72704,
+    "inflation": 0.0273
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "diabetes",
+    "rule": "kaggle",
+    "n_subs": 22,
+    "reported": 0.74684,
+    "private": 0.72337,
+    "inflation": 0.02347
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "diabetes",
+    "rule": "ladder",
+    "n_subs": 22,
+    "reported": 0.73941,
+    "private": 0.71643,
+    "inflation": 0.02299
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "phoneme",
+    "rule": "kaggle",
+    "n_subs": 17,
+    "reported": 0.90279,
+    "private": 0.88822,
+    "inflation": 0.01457
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "naive",
+    "comp": "phoneme",
+    "rule": "ladder",
+    "n_subs": 17,
+    "reported": 0.89879,
+    "private": 0.89119,
+    "inflation": 0.00759
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "credit-g",
+    "rule": "kaggle",
+    "n_subs": 15,
+    "reported": 0.76173,
+    "private": 0.71737,
+    "inflation": 0.04436
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "credit-g",
+    "rule": "ladder",
+    "n_subs": 15,
+    "reported": 0.75029,
+    "private": 0.7202,
+    "inflation": 0.03008
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "diabetes",
+    "rule": "kaggle",
+    "n_subs": 21,
+    "reported": 0.76856,
+    "private": 0.73308,
+    "inflation": 0.03547
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "diabetes",
+    "rule": "ladder",
+    "n_subs": 21,
+    "reported": 0.76065,
+    "private": 0.74276,
+    "inflation": 0.01789
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "phoneme",
+    "rule": "kaggle",
+    "n_subs": 14,
+    "reported": 0.91878,
+    "private": 0.89774,
+    "inflation": 0.02104
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "pool": "holdout",
+    "comp": "phoneme",
+    "rule": "ladder",
+    "n_subs": 14,
+    "reported": 0.91356,
+    "private": 0.89586,
+    "inflation": 0.0177
    }
   ],
   "pooled": {
    "kaggle": {
-    "reported": 0.81829,
-    "private": 0.79333,
-    "inflation": 0.02497,
-    "n_pools": 6
+    "reported": 0.81447,
+    "private": 0.78775,
+    "inflation": 0.02672,
+    "n_pools": 12
    },
    "ladder": {
-    "reported": 0.81132,
-    "private": 0.79038,
-    "inflation": 0.02093,
-    "n_pools": 6
+    "reported": 0.80708,
+    "private": 0.78631,
+    "inflation": 0.02076,
+    "n_pools": 12
+   }
+  }
+ },
+ "gate_pooled": {
+  "naive": {
+   "proposed": 135,
+   "admitted": 135,
+   "rejected": 0,
+   "stripped": 3
+  },
+  "holdout": {
+   "proposed": 76,
+   "admitted": 43,
+   "rejected": 33,
+   "stripped": 114
+  },
+  "runs": [
+   "m2",
+   "m2s1"
+  ]
+ },
+ "seeds_pooled": {
+  "rows": [
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "naive",
+    "comp": "credit-g",
+    "reported_public": 0.7,
+    "private": 0.715,
+    "inflation": -0.015
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "naive",
+    "comp": "diabetes",
+    "reported_public": 0.87,
+    "private": 0.74648,
+    "inflation": 0.12352
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "naive",
+    "comp": "phoneme",
+    "reported_public": 0.84,
+    "private": 0.89239,
+    "inflation": -0.05239
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "holdout",
+    "comp": "credit-g",
+    "reported_public": 0.69,
+    "private": 0.72,
+    "inflation": -0.03
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "holdout",
+    "comp": "diabetes",
+    "reported_public": 0.84,
+    "private": 0.72887,
+    "inflation": 0.11113
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "arm": "holdout",
+    "comp": "phoneme",
+    "reported_public": 0.86,
+    "private": 0.87202,
+    "inflation": -0.01202
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "naive",
+    "comp": "credit-g",
+    "reported_public": 0.82,
+    "private": 0.7325,
+    "inflation": 0.0875
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "naive",
+    "comp": "diabetes",
+    "reported_public": 0.75,
+    "private": 0.71831,
+    "inflation": 0.03169
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "naive",
+    "comp": "phoneme",
+    "reported_public": 0.87,
+    "private": 0.8774,
+    "inflation": -0.0074
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "holdout",
+    "comp": "credit-g",
+    "reported_public": 0.8,
+    "private": 0.72,
+    "inflation": 0.08
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "holdout",
+    "comp": "diabetes",
+    "reported_public": 0.8,
+    "private": 0.73239,
+    "inflation": 0.06761
+   },
+   {
+    "run": "m2s1",
+    "seed": 1,
+    "arm": "holdout",
+    "comp": "phoneme",
+    "reported_public": 0.87,
+    "private": 0.8897,
+    "inflation": -0.0197
+   }
+  ],
+  "pooled": {
+   "naive": {
+    "reported_public": {
+     "mean": 0.80833,
+     "sd": 0.06309
+    },
+    "private": {
+     "mean": 0.78035,
+     "sd": 0.07475
+    },
+    "inflation": {
+     "mean": 0.02799,
+     "sd": 0.06089
+    },
+    "n": 6
+   },
+   "holdout": {
+    "reported_public": {
+     "mean": 0.81,
+     "sd": 0.06
+    },
+    "private": {
+     "mean": 0.77716,
+     "sd": 0.07364
+    },
+    "inflation": {
+     "mean": 0.03284,
+     "sd": 0.0552
+    },
+    "n": 6
    }
   }
  }
