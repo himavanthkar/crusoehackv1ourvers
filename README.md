@@ -115,7 +115,7 @@ cp .env.example .env            # add CRUSOE_API_KEY
 SANDBOX=openshell .venv/bin/python demo.py --live --rounds 1   # same, agent code inside NVIDIA OpenShell
 ```
 
-Demo video: [`video/holdout_demo.mp4`](video/holdout_demo.mp4) (60 s, rendered by `python video/make_video.py`).
+Demo video: [`video/holdout_demo_v2.mp4`](video/holdout_demo_v2.mp4) (57 s with narration, rendered by `python video/make_video_v2.py`; narration text in `video/voiceover_v2.txt`).
 
 Replays need no network and no API key. LLM responses are cached on disk (`cache/`, gitignored), so a rerun of the
 same run is free and deterministic.

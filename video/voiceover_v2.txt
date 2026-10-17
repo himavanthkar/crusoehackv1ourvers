@@ -1,0 +1,8 @@
+Total 56.67 s. Read each line at its start time.
+
+  0.0s  [title]  Self-improving agents learn the scoreboard, not the task. HOLDOUT is a shared brain that only learns proven lessons.
+  7.3s  [replay]  An AI Kaggle team on Crusoe, all Nemotron. Researchers write code that runs inside NVIDIA OpenShell, and a curator rewrites the team's playbook every round. HOLDOUT's Ladder rejects gains within noise, and its gate refuses rules built on them.
+ 22.6s  [gate]  Across two seeds, the naive curator admitted all 135 rules it wrote. HOLDOUT's gate admitted 43 of 76.
+ 31.4s  [transfer]  On datasets the team never saw, code from the naive playbook ran 2 times out of 32. A rule backed mostly by noise broke it. HOLDOUT's ran 16 out of 32.
+ 42.4s  [boost]  Against random guessing, a normal leaderboard reports 0.87. The Ladder holds it to 0.64.
+ 50.0s  [close]  Final picks didn't differ at our scale. What changed is what the team learned. HOLDOUT, on Crusoe.
