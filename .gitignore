@@ -10,3 +10,4 @@ runs/*/raw/
 runs/logs/
 data_cache/
 .DS_Store
+runs/smoke/

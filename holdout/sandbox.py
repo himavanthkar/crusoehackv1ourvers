@@ -74,7 +74,7 @@ def run_solution(code: str, X_train, y_train, X_test, timeout: float = SANDBOX_T
         d = tempfile.mkdtemp(prefix="holdout_sbx_")
         try:
             with open(os.path.join(d, "solution.py"), "w") as f:
-                f.write(code)
+                f.write("import numpy as np\nimport pandas as pd\n" + code)
             with open(os.path.join(d, "runner.py"), "w") as f:
                 f.write(RUNNER)
             with open(os.path.join(d, "data.pkl"), "wb") as f:

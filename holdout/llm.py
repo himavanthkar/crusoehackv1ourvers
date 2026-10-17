@@ -108,10 +108,42 @@ def chat(model: str, messages: list[dict], *, temperature: float, max_tokens: in
         return r
 
 
-def _call(model: str, messages: list[dict], temperature: float, max_tokens: int, tries: int = 6) -> Reply:
+class _Pacer:
+    """Adaptive per-model pacing: spaces request starts, widens the gap on 429, narrows it on success.
+    The Crusoe key is shared with another session, so we cannot know the remaining quota in advance."""
+
+    def __init__(self):
+        self.gap = {}
+        self.next = {}
+        self.lock = threading.Lock()
+
+    def wait(self, model: str):
+        with self.lock:
+            gap = self.gap.setdefault(model, 0.5)
+            now = time.time()
+            t = max(now, self.next.get(model, 0.0))
+            self.next[model] = t + gap
+        if t > now:
+            time.sleep(t - now)
+
+    def ok(self, model: str):
+        with self.lock:
+            self.gap[model] = max(0.5, self.gap.get(model, 0.5) * 0.9)
+
+    def throttled(self, model: str):
+        with self.lock:
+            self.gap[model] = min(6.0, self.gap.get(model, 0.5) * 1.6 + 0.5)
+            self.next[model] = time.time() + 3 * self.gap[model]
+
+
+_pacer = _Pacer()
+
+
+def _call(model: str, messages: list[dict], temperature: float, max_tokens: int, tries: int = 12) -> Reply:
     extra = {"chat_template_kwargs": {"enable_thinking": False}} if "emotron" in model else {}
     last = None
     for attempt in range(tries):
+        _pacer.wait(model)
         with _sem:
             t0 = time.time()
             try:
@@ -126,9 +158,12 @@ def _call(model: str, messages: list[dict], temperature: float, max_tokens: int,
             except (openai.RateLimitError, openai.InternalServerError, openai.APIConnectionError,
                     openai.APITimeoutError) as e:
                 last, dt = e, None
+                if isinstance(e, openai.RateLimitError):
+                    _pacer.throttled(model)
         if dt is None:
-            time.sleep(min(30.0, 1.0 * 2 ** attempt) + random.uniform(0, 1.0))
+            time.sleep(min(45.0, 1.5 * 2 ** attempt) + random.uniform(0, 2.0))
             continue
+        _pacer.ok(model)
         msg = resp.choices[0].message
         text = msg.content or ""
         if not text.strip():
