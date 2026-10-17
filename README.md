@@ -20,6 +20,98 @@ Track: **Version N+1**. Built today (Oct 17 2026) at The Recursive Agents Hackat
   skill, and proposed the **Ladder**, a leaderboard that stays accurate under adaptive reuse. As far as we know nobody has
   used it as the keep/discard gate of a self-improving agent team. That is what we built.
 
+## How we got here (the design story)
+
+This project came out of a long team discussion about a *different* design: a self-improving "shared brain" research
+swarm. HOLDOUT keeps almost all of that design and fixes the one weakness we found in it. Here is the path, so anyone
+reading the repo can follow the reasoning. Numbers are in the Results section, where they are generated from logs.
+
+### 1. Where the team started: a research swarm with a shared brain
+
+- **Pick a task with a number.** We dropped ideas where "better" is subjective (negotiation, dating, insurance
+  interpretation) and settled on improving an existing ML benchmark, because validation and test accuracy are objective.
+- **Two kinds of compute.** LLM reasoning (understand the problem, form hypotheses, write sklearn code, reflect) runs on
+  Crusoe inference. Running the candidate models does not need an LLM: the agent writes Python, a **sandbox** executes it
+  and returns a metric. The sandbox is a deterministic worker, not another agent.
+- **A researcher is a trajectory, not one experiment.** Each researcher gets a budget and loops: think, write a
+  candidate, run it, read the score, revise, keep its best. It dies when the budget runs out.
+- **A population, for diversity.** One lucky sequential run proves nothing. Parallel researchers with different
+  directions (feature engineering, model family, tuning, ensembling) explore different hypotheses.
+- **Agents read the shared memory; a curator writes it.** Dumping every transcript into the next generation is huge,
+  noisy and makes everyone converge. Instead a curator reads the ranked results and compresses what worked and what
+  failed into inherited knowledge. *Agents die; useful knowledge survives.*
+- **Budget is a first-class parameter**, so "better" is never just "spent more".
+- **Train / validation / test.** Researchers fit on train and see validation scores repeatedly. The test set stays
+  hidden, including from the curator, until the final candidate is frozen.
+
+### 2. The crack: the swarm keeps whatever the validation score rewards
+
+Looking hard at that last point is what led to HOLDOUT. In the swarm design, researchers check the validation score
+again and again, and the curator promotes "what worked" by validation score. That is exactly a Kaggle public
+leaderboard, and exactly the keep-if-the-score-went-up rule of autoresearch-style loops. Under adaptive reuse a
+validation score stops being an honest estimate:
+
+- a small validation set rewards lucky noise, and the selected "best" is biased upward (winner's curse);
+- a bigger population makes this *worse*: more researchers means more lucky winners to promote;
+- the curator writes those lucky wins into the shared brain, so the next generation inherits noise as "knowledge".
+
+In other words, the swarm out-generates its own verifier. Blum and Hardt had already shown the extreme case (a boosting
+attack that climbs a leaderboard with random guesses) and a fix (the Ladder).
+
+### 3. The pivot: make the verifier the product
+
+We kept the swarm (researchers, sandbox, curator, playbook as the shared brain, sealed test set) and changed exactly one
+thing, in two arms that are otherwise identical: same models, prompts, researchers, rounds and budgets.
+
+- **Naive arm:** every submission's public score is shown; the curator may cite any reported gain.
+- **HOLDOUT arm:** the public score is released by the Ladder (only significant gains move it), and a plain-Python gate
+  admits a playbook rule only if it cites a submission the Ladder accepted. Structure changes are kept only if the next
+  round produces a Ladder-accepted gain.
+
+The public set is deliberately small (100 rows), because that is what agent evals usually look like and what makes
+adaptive overfitting visible. The private rows play the role of the hidden test set. Two competitions are kept sealed
+for a transfer test: does what the team learned help on tasks it has never seen?
+
+### 4. Build order, and why
+
+1. **Crusoe first.** We listed the live models instead of trusting docs. Nemotron 3 Ultra was not live for us, so the
+   curator runs on the largest live Nemotron (Super) and the researchers on Nemotron Lightning.
+2. **The Ladder, implemented from Figure 2 of the paper, with tests**, next to the Kaggle mechanism.
+3. **The boosting-attack bot before any LLM.** A non-LLM attacker has to show the effect first. If random guesses could
+   not climb the Kaggle board and stall on the Ladder, no LLM result would mean anything.
+4. **Then the agent team**, two arms in parallel, every event logged so the demo can replay it offline.
+5. **Then transfer, a second split seed, a MemoryAlloy cache probe, and an NVIDIA OpenShell sandbox backend.**
+
+### 5. What broke while running, and what we changed
+
+- **The gate rejected everything in round 2.** The curator copied evidence as `cg.R1.A1 (0.69000)`; the gate did not
+  recognise the decorated ids. Fixed by normalising ids (with a test). The run was discarded, not reported.
+- **HOLDOUT was wiping its own verified rules.** When the curator kept an old rule it swapped in only the new round's ids,
+  so the gate dropped rules whose real evidence was from earlier rounds. We told the curator (in both arms, identically)
+  to carry evidence forward, and restarted. That run was also discarded.
+- **Rate limits.** We shared one Crusoe key with another project, so we added adaptive pacing and patient retries,
+  then gave this project its own key. Nemotron Super still throttled at times, so curator calls now fall back to another
+  Nemotron after repeated 429s, and the log records which model answered.
+- **The small researcher model writes a lot of failing code.** Failures are logged and never reach the leaderboard.
+  This turned out to matter: it is how the naive playbook's bad advice showed up on unseen competitions.
+
+### 6. What the data actually said
+
+- The mechanism works where theory says it should: against the zero-skill boosting attack the Ladder holds the reported
+  score far lower than the Kaggle board.
+- With real LLM researchers the final-pick shake-up was small and mixed. Their submissions are highly correlated, so
+  they are much less adversarial than the attack. We report this rather than hide it.
+- The big difference is **what each team learns**. The naive curator admits essentially every rule; the gate rejects
+  rules whose evidence was noise. On the sealed competitions, code written from the naive playbook rarely ran, while the
+  gated playbook transferred better than an empty one.
+
+### 7. Where this goes next
+
+The Ladder plus an evidence gate is a drop-in keep/discard rule for any self-improving loop (autoresearch, prompt or
+playbook evolution, agent-written tools). It should matter *more* as populations grow, because more researchers means
+more lucky winners. Next: larger populations and more seeds, Thresholdout as a second gate, researcher web search with a
+contamination guard, and every experiment run inside OpenShell.
+
 ## What we built (all of it today)
 
 ```mermaid
@@ -57,6 +149,7 @@ flowchart LR
 | Cache probe | `holdout/cache_probe.py` | Measures MemoryAlloy prefix reuse (cached tokens and time-to-first-token) |
 | Report | `holdout/report.py` | `results/results.json`, charts, markdown tables, all computed from logs |
 | Demo | `demo.py` | `rich` terminal replay / live run with gate verdicts and the REVEAL PRIVATE shake-up |
+| Demo video | `video/make_video.py` | Renders the 60 s demo video from real `demo.py` frames and `results/` (`video/holdout_demo.mp4`, script in `video_script.md`) |
 | Tests | `tests/` | Ladder/Kaggle properties, sandbox isolation, gate rules, and a sealing test that fails if any agent prompt contains private labels, sealed scores or unseen-competition data |
 
 ### Provenance
@@ -201,6 +294,8 @@ cp .env.example .env            # add CRUSOE_API_KEY
 .venv/bin/python demo.py --live --rounds 1        # one small live round on Crusoe
 SANDBOX=openshell .venv/bin/python demo.py --live --rounds 1   # same, agent code inside NVIDIA OpenShell
 ```
+
+Demo video: [`video/holdout_demo.mp4`](video/holdout_demo.mp4) (60 s, rendered by `python video/make_video.py`).
 
 Replays need no network and no API key. LLM responses are cached on disk (`cache/`, gitignored), so a rerun of the
 same run is free and deterministic.

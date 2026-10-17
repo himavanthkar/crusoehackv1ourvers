@@ -174,7 +174,7 @@ def run_solution_openshell(code: str, X_train, y_train, X_test, timeout: float =
             preds = np.frombuffer(base64.b64decode(enc), dtype=np.int8).astype(int)
             if len(preds) == len(X_test):
                 return RunResult(True, preds, "OK (openshell)", dt)
-        log = out.split("@@PREDS")[0][-2000:] or (p.stderr or "")[-2000:]
+        log = out.split("@@RC")[0].split("@@PREDS")[0][-2000:] or (p.stderr or "")[-2000:]
         timed_out = dt >= timeout and "Killed" in log or "@@RC 137" in out
         return RunResult(False, None, ("TIMEOUT\n" if timed_out else "") + log, dt, timed_out)
 

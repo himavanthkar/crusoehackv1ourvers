@@ -1,0 +1,35 @@
+{
+ "total_s": 60.0,
+ "scenes": [
+  {
+   "scene": "title",
+   "start": 0.0,
+   "end": 10.0
+  },
+  {
+   "scene": "boosting",
+   "start": 10.0,
+   "end": 17.0
+  },
+  {
+   "scene": "replay",
+   "start": 17.0,
+   "end": 34.0
+  },
+  {
+   "scene": "reveal",
+   "start": 34.0,
+   "end": 40.0
+  },
+  {
+   "scene": "transfer",
+   "start": 40.0,
+   "end": 52.0
+  },
+  {
+   "scene": "close",
+   "start": 52.0,
+   "end": 60.0
+  }
+ ]
+}

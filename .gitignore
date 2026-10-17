@@ -12,3 +12,4 @@ data_cache/
 .DS_Store
 runs/smoke/
 runs/live-*/
+video/frames/

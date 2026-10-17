@@ -57,7 +57,7 @@ class State:
             tag = Text(f"{'KAGGLE' if arm == 'naive' else 'LADDER'} ", style=f"bold {ARM_STYLE[arm]}")
             body = Text(f"{arm:7s} {ev['id']:10s} {ev['kind']:8s} ")
             if not ev["ok"]:
-                err = (ev.get("error") or "").strip().splitlines()
+                err = [l for l in (ev.get("error") or "").strip().splitlines() if l.strip() and not l.startswith("@@")]
                 body.append(f"sandbox: failed ({(err[-1] if err else 'error')[:60]})", style="dim")
             elif arm == "naive":
                 body.append(f"reported {ev['reported']:.3f}  ")
