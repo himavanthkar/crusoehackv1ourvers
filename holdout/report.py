@@ -13,6 +13,7 @@ from scipy.stats import spearmanr
 
 from . import config as C
 
+RESAMPLE_RUNS: list[str] = []
 ARM_LABEL = {"naive": "Naive (Kaggle board)", "holdout": "HOLDOUT (Ladder + gate)"}
 COLORS = {"naive": "#d62728", "holdout": "#2ca02c", "gen-0": "#7f7f7f", "naive-final": "#d62728", "holdout-final": "#2ca02c"}
 
@@ -86,27 +87,114 @@ def transfer_summary(tr: dict | None) -> dict | None:
             "mechanism": tr["mechanism"], "seeds": tr["seeds"], "playbooks": {k: [x["rule"] for x in v] for k, v in tr["playbooks"].items()}}
 
 
-def efficiency(arena: dict, tr: dict | None) -> dict:
-    """Token and $ totals straight from runs/logs/llm_calls.jsonl."""
-    calls = [json.loads(l) for l in open(C.RUNS_DIR / "logs" / "llm_calls.jsonl")] if (C.RUNS_DIR / "logs" / "llm_calls.jsonl").exists() else []
+def efficiency(arena: dict, tr: dict | None, sh: dict | None = None) -> dict:
+    """Per-run totals come from each run's own counters; the project total is every live call logged today
+    (including smoke tests and aborted runs) from runs/logs/llm_calls.jsonl."""
+    log = C.RUNS_DIR / "logs" / "llm_calls.jsonl"
+    calls = [json.loads(l) for l in open(log)] if log.exists() else []
     live = [c for c in calls if not c.get("from_cache")]
-    by_role = {}
+    by_model = {}
     for c in live:
-        r = by_role.setdefault(c["role"] or "other", {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0,
-                                                      "cached_tokens": 0, "cached_reported_calls": 0, "usd": 0.0})
+        r = by_model.setdefault(c["model"], {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0,
+                                             "cached_tokens": 0, "calls_reporting_cached": 0, "usd": 0.0})
         r["calls"] += 1
         r["prompt_tokens"] += c.get("prompt_tokens", 0)
         r["completion_tokens"] += c.get("completion_tokens", 0)
         if c.get("cached_tokens") is not None:
-            r["cached_reported_calls"] += 1
+            r["calls_reporting_cached"] += 1
             r["cached_tokens"] += c["cached_tokens"]
         r["usd"] = round(r["usd"] + c.get("usd", 0.0), 6)
-    tot_prompt = sum(r["prompt_tokens"] for r in by_role.values())
-    tot_cached = sum(r["cached_tokens"] for r in by_role.values())
-    return {"live_calls": len(live), "cache_hits_local": len(calls) - len(live), "by_role": by_role,
-            "total_tokens": tot_prompt + sum(r["completion_tokens"] for r in by_role.values()),
-            "cached_token_share": round(tot_cached / tot_prompt, 4) if tot_prompt else None,
-            "usd": round(sum(r["usd"] for r in by_role.values()), 4)}
+    tot_prompt = sum(r["prompt_tokens"] for r in by_model.values())
+    tot_cached = sum(r["cached_tokens"] for r in by_model.values())
+    arena_t = arena.get("llm_totals", {})
+    tr_t = (tr or {}).get("llm_totals", {})
+    out = {"arena_run": {k: arena_t.get(k) for k in ("calls", "prompt_tokens", "completion_tokens", "cached_tokens", "usd")},
+           "transfer_run": {k: tr_t.get(k) for k in ("calls", "prompt_tokens", "completion_tokens", "cached_tokens", "usd")} if tr_t else None,
+           "project_total": {"live_calls": len(live), "replayed_from_local_cache": len(calls) - len(live),
+                             "total_tokens": tot_prompt + sum(r["completion_tokens"] for r in by_model.values()),
+                             "usd": round(sum(r["usd"] for r in by_model.values()), 4),
+                             "cached_token_share_reported": round(tot_cached / tot_prompt, 4) if tot_prompt else None,
+                             "by_model": by_model}}
+    if sh:
+        # $ per point of private accuracy: arena cost / (HOLDOUT mean private - mean private of a plain LR baseline)
+        base = baseline_private(arena)
+        hp = sh["holdout"]["mean"].get("private")
+        if base is not None and hp is not None:
+            gain = (hp - base) * 100
+            out["baseline_lr_mean_private"] = round(base, 5)
+            out["holdout_private_gain_points_vs_lr"] = round(gain, 2)
+            out["usd_per_private_point"] = round(arena_t.get("usd", 0) / gain, 4) if gain > 0 else None
+    return out
+
+
+def baseline_private(arena: dict) -> float | None:
+    """Private accuracy of the plain logistic-regression baseline (holdout/sandbox.BASELINE) on the same splits."""
+    from .data import make_competition
+    from .sandbox import BASELINE, run_solution
+    vals = []
+    for comp in arena["comps"]:
+        c = make_competition(comp, arena["seed"])
+        r = run_solution(BASELINE, c.X_train, c.y_train, c.X_test)
+        if r.ok:
+            vals.append(float(np.mean(r.preds[c.private_idx] == c.y_test[c.private_idx])))
+    return float(np.mean(vals)) if vals else None
+
+
+def resampled_selection(arena_ids: list[str], draws: int = 2000, seed: int = 7) -> dict | None:
+    """Hold each team's real submissions fixed (in their real order) and redraw the n=100 public set many times.
+    For every draw, apply the Kaggle selection rule (max public, earliest on ties) and the Ladder rule (run the
+    parameter-free Ladder over the submissions in order, take its best). Report reported-public, private and
+    inflation of each pick. This isolates the selection mechanism from one lucky split. It ignores adaptivity
+    (the agents chose submissions after seeing the real public scores), so it understates naive overfitting."""
+    from .data import make_competition
+    from .leaderboard import KaggleBoard, LadderBoard
+    rng = np.random.default_rng(seed)
+    rows = []
+    for rid in arena_ids:
+        a = _load(C.RUNS_DIR / rid / "arena.json")
+        if not a:
+            continue
+        for arm in ("naive", "holdout"):
+            pz = C.RUNS_DIR / rid / f"preds_{arm}.npz"
+            if not pz.exists():
+                pz = C.RUNS_DIR / rid / "raw" / f"preds_{arm}.npz"
+            if not pz.exists():
+                continue
+            preds = np.load(pz)
+            for comp in a["comps"]:
+                c = make_competition(comp, a["seed"])
+                ok = [x for x in a["arms"][arm]["subs"] if x["comp"] == comp and x["ok"] and x["id"] in preds.files]
+                ok.sort(key=lambda x: x["order"])
+                if len(ok) < 3:
+                    continue
+                P = np.stack([preds[x["id"]] for x in ok])
+                y = c.y_test
+                m = len(y)
+                res = {"kaggle": [], "ladder": []}
+                for _ in range(draws):
+                    pub = rng.choice(m, c.public_idx.size, replace=False)
+                    mask = np.zeros(m, bool)
+                    mask[pub] = True
+                    priv_acc = (P[:, ~mask] == y[~mask]).mean(1)
+                    kb, lb = KaggleBoard(y[pub], pub), LadderBoard(y[pub], pub)
+                    for i in range(len(ok)):
+                        kb.submit(P[i], i)
+                        lb.submit(P[i], i)
+                    res["kaggle"].append((kb.best_reported, priv_acc[kb.best_id]))
+                    res["ladder"].append((lb.best_reported, priv_acc[lb.best_id]))
+                for rule, v in res.items():
+                    v = np.array(v)
+                    rows.append({"run": rid, "seed": a["seed"], "pool": arm, "comp": comp, "rule": rule, "n_subs": len(ok),
+                                 "reported": round(float(v[:, 0].mean()), 5), "private": round(float(v[:, 1].mean()), 5),
+                                 "inflation": round(float((v[:, 0] - v[:, 1]).mean()), 5)})
+    if not rows:
+        return None
+    pooled = {}
+    for rule in ("kaggle", "ladder"):
+        rr = [r for r in rows if r["rule"] == rule]
+        pooled[rule] = {k: round(float(np.mean([r[k] for r in rr])), 5) for k in ("reported", "private", "inflation")}
+        pooled[rule]["n_pools"] = len(rr)
+    return {"draws": draws, "rows": rows, "pooled": pooled}
 
 
 # ---------------------------------------------------------------- charts
@@ -229,6 +317,22 @@ def markdown(res: dict) -> str:
             L.append(f"| {c} | {s} | {f(v.get('gen-0'))} | {f(v.get('naive-final'))} | {f(v.get('holdout-final'))} |")
         m = t["mean_final_private"]
         L.append(f"| **mean** | | {m.get('gen-0', 0):.3f} | {m.get('naive-final', 0):.3f} | {m.get('holdout-final', 0):.3f} |")
+    rs = res.get("resampled_selection")
+    if rs:
+        L.append(f"\n### Same submissions, two selection rules ({rs['draws']} redraws of the n=100 public set)\n")
+        L.append("Each team's real submissions are held fixed; only which 100 test rows are public changes. "
+                 "This ignores adaptivity, so it understates the naive team's overfitting.\n")
+        L.append("| Submission pool | Competition | Seed | Subs | Kaggle rule: reported / private / inflation | Ladder rule: reported / private / inflation |")
+        L.append("|---|---|---|---|---|---|")
+        keys = sorted({(r["pool"], r["comp"], r["seed"], r["run"]) for r in rs["rows"]})
+        for pool, comp, sd, rid in keys:
+            k = next(r for r in rs["rows"] if (r["pool"], r["comp"], r["seed"], r["run"], r["rule"]) == (pool, comp, sd, rid, "kaggle"))
+            l = next(r for r in rs["rows"] if (r["pool"], r["comp"], r["seed"], r["run"], r["rule"]) == (pool, comp, sd, rid, "ladder"))
+            L.append(f"| {pool} team | {comp} | {sd} | {k['n_subs']} | {k['reported']:.3f} / {k['private']:.3f} / {k['inflation']:+.3f} | "
+                     f"{l['reported']:.3f} / {l['private']:.3f} / {l['inflation']:+.3f} |")
+        pk, pl = rs["pooled"]["kaggle"], rs["pooled"]["ladder"]
+        L.append(f"| **mean** | | | | {pk['reported']:.3f} / {pk['private']:.3f} / {pk['inflation']:+.3f} | "
+                 f"{pl['reported']:.3f} / {pl['private']:.3f} / {pl['inflation']:+.3f} |")
     b = res.get("boosting_bot")
     if b:
         L.append("\n### Boosting attack (random labels, no skill)\n")
@@ -240,23 +344,44 @@ def markdown(res: dict) -> str:
             bb = b["boards"][name]
             L.append(f"| {name} | {bb['reported_public']['mean'][-1]:.3f} | {bb['private']['mean'][-1]:.3f} |")
     e = res["efficiency"]
-    L.append("\n### Efficiency\n")
-    L.append(f"Live LLM calls: {e['live_calls']} (plus {e['cache_hits_local']} served from the local replay cache), "
-             f"total tokens {e['total_tokens']:,}, estimated cost ${e['usd']:.2f}, "
-             f"cached-token share reported by Crusoe: {e['cached_token_share']}.")
+    a, pt = e["arena_run"], e["project_total"]
+    L.append("\n### Efficiency (Crusoe Managed Inference, all Nemotron)\n")
+    L.append("| Scope | Live LLM calls | Prompt tokens | Completion tokens | Est. cost |")
+    L.append("|---|---|---|---|---|")
+    L.append(f"| Arena run `{res['arena_run']}` (both arms, 3 competitions x 4 rounds) | {a['calls']} | {a['prompt_tokens']:,} | {a['completion_tokens']:,} | ${a['usd']:.3f} |")
+    if e.get("transfer_run"):
+        t = e["transfer_run"]
+        L.append(f"| Transfer run | {t['calls']} | {t['prompt_tokens']:,} | {t['completion_tokens']:,} | ${t['usd']:.3f} |")
+    L.append(f"| Everything today (incl. smoke tests, aborted runs) | {pt['live_calls']} | | | ${pt['usd']:.3f} |")
+    L.append(f"\nCached-token share reported by Crusoe in `usage.prompt_tokens_details`: {pt['cached_token_share_reported']} "
+             f"(Lightning returns `null` for this field, so this undercounts; see the cache probe).")
+    if e.get("usd_per_private_point") is not None:
+        L.append(f"HOLDOUT final picks beat a plain logistic-regression baseline by {e['holdout_private_gain_points_vs_lr']:.2f} "
+                 f"private-accuracy points on average (baseline {e['baseline_lr_mean_private']:.3f}), at "
+                 f"${e['usd_per_private_point']:.4f} of arena inference per point.")
+    elif e.get("holdout_private_gain_points_vs_lr") is not None:
+        L.append(f"HOLDOUT final picks vs a plain logistic-regression baseline: {e['holdout_private_gain_points_vs_lr']:+.2f} private points.")
+    cp = res.get("cache_probe")
+    if cp:
+        for m in cp["models"]:
+            L.append(f"- Cache probe `{m['model']}`: median time-to-first-token {m['median_ttft_shared_s']:.3f} s with a shared "
+                     f"~{m['shared_prefix'][0]['prompt_tokens']}-token prefix vs {m['median_ttft_unique_s']:.3f} s with unique prefixes; "
+                     f"cached_tokens reported: shared {m['cached_tokens_shared']}, unique {m['cached_tokens_unique']}.")
     return "\n".join(L)
 
 
 def build(arena_id: str = "m2", transfer_id: str | None = "transfer") -> dict:
     arena = _load(C.RUNS_DIR / arena_id / "arena.json")
-    tr = _load(C.RUNS_DIR / transfer_id / "transfer.json") if transfer_id else None
+    tr = _load(C.RUNS_DIR / transfer_id / "transfer.json") if transfer_id and transfer_id != "none" else None
     bb = _load(C.RESULTS_DIR / "boosting_bot.json")
     probe = _load(C.RESULTS_DIR / "cache_probe.json")
     res = {"arena_run": arena_id, "arena_seed": arena["seed"], "comps": arena["comps"], "rounds": arena["rounds"],
            "models": arena["models"], "public_n": arena["public_n"], "private_n": arena["private_n"],
            "shakeup": shakeup(arena), "gate": gate_summary(arena), "per_round": {a: d["per_round"] for a, d in arena["arms"].items()},
-           "transfer": transfer_summary(tr), "boosting_bot": bb, "efficiency": efficiency(arena, tr), "cache_probe": probe,
+           "transfer": transfer_summary(tr), "boosting_bot": bb, "cache_probe": probe,
            "arena_errors": arena.get("errors"), "arena_wall_s": arena.get("wall_s")}
+    res["efficiency"] = efficiency(arena, tr, res["shakeup"])
+    res["resampled_selection"] = resampled_selection(RESAMPLE_RUNS or [arena_id])
     C.RESULTS_DIR.mkdir(exist_ok=True)
     (C.RESULTS_DIR / "results.json").write_text(json.dumps(res, indent=1, default=str))
     chart_shakeup(res["shakeup"], arena["comps"], C.RESULTS_DIR / "shakeup.png")
@@ -308,6 +433,8 @@ if __name__ == "__main__":
     ap.add_argument("--transfer", default="transfer")
     ap.add_argument("--seeds-runs", default="", help="comma-separated arena run ids to pool (e.g. m2,m2s1,m2s2)")
     a = ap.parse_args()
+    if a.seeds_runs:
+        RESAMPLE_RUNS.extend(a.seeds_runs.split(","))
     res = build(a.arena, a.transfer)
     md = (C.RESULTS_DIR / "results.md").read_text()
     if a.seeds_runs:

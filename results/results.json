@@ -1,0 +1,1536 @@
+{
+ "arena_run": "m2",
+ "arena_seed": 0,
+ "comps": [
+  "credit-g",
+  "diabetes",
+  "phoneme"
+ ],
+ "rounds": 4,
+ "models": {
+  "researcher": "nvidia/Nemotron-3.5-Lightning-30B-A3B",
+  "curator": "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B"
+ },
+ "public_n": {
+  "credit-g": 100,
+  "diabetes": 100,
+  "phoneme": 100
+ },
+ "private_n": {
+  "credit-g": 400,
+  "diabetes": 284,
+  "phoneme": 2602
+ },
+ "shakeup": {
+  "naive": {
+   "per_comp": {
+    "credit-g": {
+     "final_id": "cg.R2.B2",
+     "final_kind": "code",
+     "reported_public": 0.7,
+     "true_public": 0.7,
+     "private": 0.715,
+     "inflation": -0.015,
+     "best_private_any": 0.7525,
+     "mean_private_all": 0.73368,
+     "final_private_rank": 16,
+     "n_ok": 19,
+     "n_subs": 32,
+     "n_failed": 13,
+     "n_ensembles": 1,
+     "n_accepted": 2,
+     "spearman_public_private": -0.6031723162595435,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "cg.R2.B2",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.7,
+       "private": 0.715,
+       "private_rank": 16,
+       "moved": -15
+      },
+      {
+       "public_rank": 2,
+       "id": "cg.R2.A2",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.7,
+       "private": 0.73,
+       "private_rank": 13,
+       "moved": -11
+      },
+      {
+       "public_rank": 3,
+       "id": "cg.R3.B1",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.7,
+       "private": 0.715,
+       "private_rank": 17,
+       "moved": -14
+      },
+      {
+       "public_rank": 4,
+       "id": "cg.R3.B2",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.7,
+       "private": 0.715,
+       "private_rank": 18,
+       "moved": -14
+      },
+      {
+       "public_rank": 5,
+       "id": "cg.R1.A1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.72,
+       "private_rank": 14,
+       "moved": -9
+      },
+      {
+       "public_rank": 6,
+       "id": "cg.R1.D1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 3,
+       "moved": 3
+      },
+      {
+       "public_rank": 7,
+       "id": "cg.R1.D2",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 4,
+       "moved": 3
+      },
+      {
+       "public_rank": 8,
+       "id": "cg.R2.D1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 5,
+       "moved": 3
+      },
+      {
+       "public_rank": 9,
+       "id": "cg.R3.C1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7175,
+       "private_rank": 15,
+       "moved": -6
+      },
+      {
+       "public_rank": 10,
+       "id": "cg.R3.C2",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.71,
+       "private_rank": 19,
+       "moved": -9
+      }
+     ]
+    },
+    "diabetes": {
+     "final_id": "db.R1.B2",
+     "final_kind": "code",
+     "reported_public": 0.87,
+     "true_public": 0.87,
+     "private": 0.74648,
+     "inflation": 0.12352,
+     "best_private_any": 0.75,
+     "mean_private_all": 0.73715,
+     "final_private_rank": 4,
+     "n_ok": 20,
+     "n_subs": 32,
+     "n_failed": 12,
+     "n_ensembles": 0,
+     "n_accepted": 2,
+     "spearman_public_private": 0.5285710485527301,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "db.R1.B2",
+       "kind": "code",
+       "public": 0.87,
+       "reported": 0.87,
+       "private": 0.74648,
+       "private_rank": 4,
+       "moved": -3
+      },
+      {
+       "public_rank": 2,
+       "id": "db.R1.A2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.73592,
+       "private_rank": 10,
+       "moved": -8
+      },
+      {
+       "public_rank": 3,
+       "id": "db.R2.A1",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.73592,
+       "private_rank": 11,
+       "moved": -8
+      },
+      {
+       "public_rank": 4,
+       "id": "db.R2.A2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.73592,
+       "private_rank": 12,
+       "moved": -8
+      },
+      {
+       "public_rank": 5,
+       "id": "db.R2.B2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.74648,
+       "private_rank": 5,
+       "moved": 0
+      },
+      {
+       "public_rank": 6,
+       "id": "db.R3.A1",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.73592,
+       "private_rank": 13,
+       "moved": -7
+      },
+      {
+       "public_rank": 7,
+       "id": "db.R3.B1",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.74648,
+       "private_rank": 6,
+       "moved": 1
+      },
+      {
+       "public_rank": 8,
+       "id": "db.R3.B2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.74648,
+       "private_rank": 7,
+       "moved": 1
+      },
+      {
+       "public_rank": 9,
+       "id": "db.R4.B1",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.74648,
+       "private_rank": 8,
+       "moved": 1
+      },
+      {
+       "public_rank": 10,
+       "id": "db.R4.B2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.74648,
+       "private_rank": 9,
+       "moved": 1
+      }
+     ]
+    },
+    "phoneme": {
+     "final_id": "ph.R2.D2",
+     "final_kind": "code",
+     "reported_public": 0.84,
+     "true_public": 0.84,
+     "private": 0.89239,
+     "inflation": -0.05239,
+     "best_private_any": 0.89239,
+     "mean_private_all": 0.70587,
+     "final_private_rank": 1,
+     "n_ok": 12,
+     "n_subs": 32,
+     "n_failed": 20,
+     "n_ensembles": 0,
+     "n_accepted": 2,
+     "spearman_public_private": 1.0,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "ph.R2.D2",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.89239,
+       "private_rank": 1,
+       "moved": 0
+      },
+      {
+       "public_rank": 2,
+       "id": "ph.R3.D1",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.89239,
+       "private_rank": 2,
+       "moved": 0
+      },
+      {
+       "public_rank": 3,
+       "id": "ph.R3.D2",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.89239,
+       "private_rank": 3,
+       "moved": 0
+      },
+      {
+       "public_rank": 4,
+       "id": "ph.R4.D1",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.89239,
+       "private_rank": 4,
+       "moved": 0
+      },
+      {
+       "public_rank": 5,
+       "id": "ph.R4.D2",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.89239,
+       "private_rank": 5,
+       "moved": 0
+      },
+      {
+       "public_rank": 6,
+       "id": "ph.R1.C2",
+       "kind": "code",
+       "public": 0.65,
+       "reported": 0.65,
+       "private": 0.57264,
+       "private_rank": 6,
+       "moved": 0
+      },
+      {
+       "public_rank": 7,
+       "id": "ph.R2.C1",
+       "kind": "code",
+       "public": 0.65,
+       "reported": 0.65,
+       "private": 0.57264,
+       "private_rank": 7,
+       "moved": 0
+      },
+      {
+       "public_rank": 8,
+       "id": "ph.R2.C2",
+       "kind": "code",
+       "public": 0.65,
+       "reported": 0.65,
+       "private": 0.57264,
+       "private_rank": 8,
+       "moved": 0
+      },
+      {
+       "public_rank": 9,
+       "id": "ph.R3.C1",
+       "kind": "code",
+       "public": 0.65,
+       "reported": 0.65,
+       "private": 0.57264,
+       "private_rank": 9,
+       "moved": 0
+      },
+      {
+       "public_rank": 10,
+       "id": "ph.R3.C2",
+       "kind": "code",
+       "public": 0.65,
+       "reported": 0.65,
+       "private": 0.57264,
+       "private_rank": 10,
+       "moved": 0
+      }
+     ]
+    }
+   },
+   "mean": {
+    "reported_public": 0.80333,
+    "true_public": 0.80333,
+    "private": 0.78462,
+    "inflation": 0.01871
+   }
+  },
+  "holdout": {
+   "per_comp": {
+    "credit-g": {
+     "final_id": "cg.R1.A1",
+     "final_kind": "code",
+     "reported_public": 0.69,
+     "true_public": 0.69,
+     "private": 0.72,
+     "inflation": -0.03,
+     "best_private_any": 0.7725,
+     "mean_private_all": 0.745,
+     "final_private_rank": 13,
+     "n_ok": 16,
+     "n_subs": 32,
+     "n_failed": 16,
+     "n_ensembles": 0,
+     "n_accepted": 1,
+     "spearman_public_private": -0.26763629732907884,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "cg.R3.B2",
+       "kind": "code",
+       "public": 0.72,
+       "reported": 0.69,
+       "private": 0.735,
+       "private_rank": 12,
+       "moved": -11
+      },
+      {
+       "public_rank": 2,
+       "id": "cg.R1.C2",
+       "kind": "code",
+       "public": 0.71,
+       "reported": 0.69,
+       "private": 0.7175,
+       "private_rank": 14,
+       "moved": -12
+      },
+      {
+       "public_rank": 3,
+       "id": "cg.R2.B1",
+       "kind": "code",
+       "public": 0.71,
+       "reported": 0.69,
+       "private": 0.705,
+       "private_rank": 16,
+       "moved": -13
+      },
+      {
+       "public_rank": 4,
+       "id": "cg.R2.C1",
+       "kind": "code",
+       "public": 0.71,
+       "reported": 0.69,
+       "private": 0.765,
+       "private_rank": 2,
+       "moved": 2
+      },
+      {
+       "public_rank": 5,
+       "id": "cg.R2.B2",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.69,
+       "private": 0.7625,
+       "private_rank": 6,
+       "moved": -1
+      },
+      {
+       "public_rank": 6,
+       "id": "cg.R4.B2",
+       "kind": "code",
+       "public": 0.7,
+       "reported": 0.69,
+       "private": 0.7725,
+       "private_rank": 1,
+       "moved": 5
+      },
+      {
+       "public_rank": 7,
+       "id": "cg.R1.A1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.72,
+       "private_rank": 13,
+       "moved": -6
+      },
+      {
+       "public_rank": 8,
+       "id": "cg.R1.D1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 9,
+       "moved": -1
+      },
+      {
+       "public_rank": 9,
+       "id": "cg.R1.D2",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 10,
+       "moved": -1
+      },
+      {
+       "public_rank": 10,
+       "id": "cg.R4.D1",
+       "kind": "code",
+       "public": 0.69,
+       "reported": 0.69,
+       "private": 0.7425,
+       "private_rank": 11,
+       "moved": -1
+      }
+     ]
+    },
+    "diabetes": {
+     "final_id": "db.R1.C1",
+     "final_kind": "code",
+     "reported_public": 0.84,
+     "true_public": 0.84,
+     "private": 0.72887,
+     "inflation": 0.11113,
+     "best_private_any": 0.76056,
+     "mean_private_all": 0.74936,
+     "final_private_rank": 11,
+     "n_ok": 11,
+     "n_subs": 32,
+     "n_failed": 21,
+     "n_ensembles": 3,
+     "n_accepted": 1,
+     "spearman_public_private": -0.2297416858235324,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "db.R3.C2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.84,
+       "private": 0.74296,
+       "private_rank": 10,
+       "moved": -9
+      },
+      {
+       "public_rank": 2,
+       "id": "db.R1.C2",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.84,
+       "private": 0.75704,
+       "private_rank": 2,
+       "moved": 0
+      },
+      {
+       "public_rank": 3,
+       "id": "db.R2.B1",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.84,
+       "private": 0.74648,
+       "private_rank": 8,
+       "moved": -5
+      },
+      {
+       "public_rank": 4,
+       "id": "db.R2.C1",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.84,
+       "private": 0.75704,
+       "private_rank": 3,
+       "moved": 1
+      },
+      {
+       "public_rank": 5,
+       "id": "db.R2.B2",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.84,
+       "private": 0.74296,
+       "private_rank": 9,
+       "moved": -4
+      },
+      {
+       "public_rank": 6,
+       "id": "db.R2.C2",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.84,
+       "private": 0.75704,
+       "private_rank": 4,
+       "moved": 2
+      },
+      {
+       "public_rank": 7,
+       "id": "db.R1.C1",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.72887,
+       "private_rank": 11,
+       "moved": -4
+      },
+      {
+       "public_rank": 8,
+       "id": "db.R2.D2",
+       "kind": "ensemble",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.75,
+       "private_rank": 5,
+       "moved": 3
+      },
+      {
+       "public_rank": 9,
+       "id": "db.R3.D1",
+       "kind": "ensemble",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.75,
+       "private_rank": 6,
+       "moved": 3
+      },
+      {
+       "public_rank": 10,
+       "id": "db.R3.D2",
+       "kind": "ensemble",
+       "public": 0.84,
+       "reported": 0.84,
+       "private": 0.75,
+       "private_rank": 7,
+       "moved": 3
+      }
+     ]
+    },
+    "phoneme": {
+     "final_id": "ph.R1.C2",
+     "final_kind": "code",
+     "reported_public": 0.86,
+     "true_public": 0.86,
+     "private": 0.87202,
+     "inflation": -0.01202,
+     "best_private_any": 0.88547,
+     "mean_private_all": 0.81881,
+     "final_private_rank": 6,
+     "n_ok": 20,
+     "n_subs": 32,
+     "n_failed": 12,
+     "n_ensembles": 2,
+     "n_accepted": 2,
+     "spearman_public_private": 0.875546035388658,
+     "top10": [
+      {
+       "public_rank": 1,
+       "id": "ph.R1.C2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.87202,
+       "private_rank": 6,
+       "moved": -5
+      },
+      {
+       "public_rank": 2,
+       "id": "ph.R3.C2",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.88547,
+       "private_rank": 1,
+       "moved": 1
+      },
+      {
+       "public_rank": 3,
+       "id": "ph.R4.A1",
+       "kind": "code",
+       "public": 0.86,
+       "reported": 0.86,
+       "private": 0.86818,
+       "private_rank": 9,
+       "moved": -6
+      },
+      {
+       "public_rank": 4,
+       "id": "ph.R2.C2",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.86,
+       "private": 0.88394,
+       "private_rank": 2,
+       "moved": 2
+      },
+      {
+       "public_rank": 5,
+       "id": "ph.R3.A1",
+       "kind": "code",
+       "public": 0.85,
+       "reported": 0.86,
+       "private": 0.87048,
+       "private_rank": 7,
+       "moved": -2
+      },
+      {
+       "public_rank": 6,
+       "id": "ph.R3.C1",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.86,
+       "private": 0.86933,
+       "private_rank": 8,
+       "moved": -2
+      },
+      {
+       "public_rank": 7,
+       "id": "ph.R3.B2",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.86,
+       "private": 0.87317,
+       "private_rank": 5,
+       "moved": 2
+      },
+      {
+       "public_rank": 8,
+       "id": "ph.R4.A2",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.86,
+       "private": 0.8628,
+       "private_rank": 10,
+       "moved": -2
+      },
+      {
+       "public_rank": 9,
+       "id": "ph.R4.B1",
+       "kind": "code",
+       "public": 0.84,
+       "reported": 0.86,
+       "private": 0.87356,
+       "private_rank": 4,
+       "moved": 5
+      },
+      {
+       "public_rank": 10,
+       "id": "ph.R1.C1",
+       "kind": "code",
+       "public": 0.83,
+       "reported": 0.83,
+       "private": 0.87702,
+       "private_rank": 3,
+       "moved": 7
+      }
+     ]
+    }
+   },
+   "mean": {
+    "reported_public": 0.79667,
+    "true_public": 0.79667,
+    "private": 0.77363,
+    "inflation": 0.02304
+   }
+  }
+ },
+ "gate": {
+  "naive": {
+   "proposed": 60,
+   "admitted": 60,
+   "rejected": 0,
+   "reasons": {},
+   "evidence_stripped": 1,
+   "examples_rejected": [],
+   "structure_log": [
+    {
+     "comp": "credit-g",
+     "round": 3,
+     "change": {
+      "type": "reassign_hints",
+      "assignment": {
+       "B": "Focus on native categorical handling in gradient boosting models (e.g., HistGradientBoostingClassifier, CatBoost) as a primary model choice direction, given its success in this round."
+      }
+     },
+     "verdict": "reverted",
+     "reason": "no leaderboard-accepted improvement in the next round"
+    }
+   ],
+   "playbook_final": [
+    "Start with a strong baseline using LightGBM, as it consistently achieves high performance on tabular data even with minimal tuning.",
+    "Use cross-validated hyperparameter tuning to improve model reliability and performance, especially when combining with strong base learners like LightGBM.",
+    "HistGradientBoostingClassifier with native categorical handling via 'from_dtype' can outperform LightGBM baselines when categorical features are properly encoded.",
+    "Feature engineering combined with LightGBM and ensembling can yield competitive results, even without model family changes.",
+    "Ensembling tuned models (e.g., LightGBM and HistGradientBoosting) via majority vote or blending can stabilize and improve performance.",
+    "Combining LightGBM and HistGradientBoostingClassifier with proper categorical encoding and cross-validated tuning, followed by ensembling, yields robust improvements."
+   ]
+  },
+  "holdout": {
+   "proposed": 26,
+   "admitted": 12,
+   "rejected": 14,
+   "reasons": {
+    "no Ladder-accepted evidence (gain within noise)": 14
+   },
+   "evidence_stripped": 45,
+   "examples_rejected": [
+    {
+     "comp": "credit-g",
+     "round": 1,
+     "rule": "Use cross-validation to tune hyperparameters and avoid overfitting, especially when working with models sensitive to regularization.",
+     "evidence": [
+      "cg.R1.C2",
+      "cg.R1.D1",
+      "cg.R1.D2"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    },
+    {
+     "comp": "credit-g",
+     "round": 1,
+     "rule": "Leverage ensembling techniques such as averaging or majority voting across multiple well-tuned models to improve robustness and performance.",
+     "evidence": [
+      "cg.R1.D1",
+      "cg.R1.D2"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    },
+    {
+     "comp": "credit-g",
+     "round": 1,
+     "rule": "Handle categorical features appropriately using encoding methods like OneHotEncoder (with handling of unknown categories) or native categorical support in models to prevent errors and improve generalization.",
+     "evidence": [
+      "cg.R1.C2"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    },
+    {
+     "comp": "credit-g",
+     "round": 3,
+     "rule": "Balanced Random Forest with careful tuning of max_depth and min_samples_leaf, combined with proper categorical encoding (e.g., one-hot), can match top gradient boosting performance.",
+     "evidence": [
+      "cg.R3.B2"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    },
+    {
+     "comp": "diabetes",
+     "round": 1,
+     "rule": "Use class-weighted loss or balanced class modes in tree-based models to handle class imbalance effectively, especially in medical or small datasets.",
+     "evidence": [
+      "db.R1.B1"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    },
+    {
+     "comp": "diabetes",
+     "round": 1,
+     "rule": "Systematic hyperparameter tuning via randomized search with cross-validation improves model performance and generalization, even on small datasets.",
+     "evidence": [
+      "db.R1.C2"
+     ],
+     "reason": "no Ladder-accepted evidence (gain within noise)"
+    }
+   ],
+   "structure_log": [],
+   "playbook_final": [
+    "Start with a strong baseline using gradient boosting (e.g., LightGBM) with default or cross-validated hyperparameters, as it consistently achieves competitive performance even with minimal tuning."
+   ]
+  }
+ },
+ "per_round": {
+  "naive": [
+   {
+    "comp": "credit-g",
+    "round": 1,
+    "best_id": "cg.R1.A1",
+    "best_reported": 0.69,
+    "best_private": 0.72,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 5
+   },
+   {
+    "comp": "credit-g",
+    "round": 2,
+    "best_id": "cg.R2.B2",
+    "best_reported": 0.7,
+    "best_private": 0.715,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 3
+   },
+   {
+    "comp": "credit-g",
+    "round": 3,
+    "best_id": "cg.R2.B2",
+    "best_reported": 0.7,
+    "best_private": 0.715,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 2
+   },
+   {
+    "comp": "credit-g",
+    "round": 4,
+    "best_id": "cg.R2.B2",
+    "best_reported": 0.7,
+    "best_private": 0.715,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 3
+   },
+   {
+    "comp": "diabetes",
+    "round": 1,
+    "best_id": "db.R1.B2",
+    "best_reported": 0.87,
+    "best_private": 0.74648,
+    "accepted_this_round": 2,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "diabetes",
+    "round": 2,
+    "best_id": "db.R1.B2",
+    "best_reported": 0.87,
+    "best_private": 0.74648,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 2
+   },
+   {
+    "comp": "diabetes",
+    "round": 3,
+    "best_id": "db.R1.B2",
+    "best_reported": 0.87,
+    "best_private": 0.74648,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 2
+   },
+   {
+    "comp": "diabetes",
+    "round": 4,
+    "best_id": "db.R1.B2",
+    "best_reported": 0.87,
+    "best_private": 0.74648,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "phoneme",
+    "round": 1,
+    "best_id": "ph.R1.C2",
+    "best_reported": 0.65,
+    "best_private": 0.57264,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 7
+   },
+   {
+    "comp": "phoneme",
+    "round": 2,
+    "best_id": "ph.R2.D2",
+    "best_reported": 0.84,
+    "best_private": 0.89239,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 5
+   },
+   {
+    "comp": "phoneme",
+    "round": 3,
+    "best_id": "ph.R2.D2",
+    "best_reported": 0.84,
+    "best_private": 0.89239,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "phoneme",
+    "round": 4,
+    "best_id": "ph.R2.D2",
+    "best_reported": 0.84,
+    "best_private": 0.89239,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 4
+   }
+  ],
+  "holdout": [
+   {
+    "comp": "credit-g",
+    "round": 1,
+    "best_id": "cg.R1.A1",
+    "best_reported": 0.69,
+    "best_private": 0.72,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "credit-g",
+    "round": 2,
+    "best_id": "cg.R1.A1",
+    "best_reported": 0.69,
+    "best_private": 0.72,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 3
+   },
+   {
+    "comp": "credit-g",
+    "round": 3,
+    "best_id": "cg.R1.A1",
+    "best_reported": 0.69,
+    "best_private": 0.72,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 5
+   },
+   {
+    "comp": "credit-g",
+    "round": 4,
+    "best_id": "cg.R1.A1",
+    "best_reported": 0.69,
+    "best_private": 0.72,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "diabetes",
+    "round": 1,
+    "best_id": "db.R1.C1",
+    "best_reported": 0.84,
+    "best_private": 0.72887,
+    "accepted_this_round": 1,
+    "submissions": 8,
+    "failed": 5
+   },
+   {
+    "comp": "diabetes",
+    "round": 2,
+    "best_id": "db.R1.C1",
+    "best_reported": 0.84,
+    "best_private": 0.72887,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 3
+   },
+   {
+    "comp": "diabetes",
+    "round": 3,
+    "best_id": "db.R1.C1",
+    "best_reported": 0.84,
+    "best_private": 0.72887,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 5
+   },
+   {
+    "comp": "diabetes",
+    "round": 4,
+    "best_id": "db.R1.C1",
+    "best_reported": 0.84,
+    "best_private": 0.72887,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 8
+   },
+   {
+    "comp": "phoneme",
+    "round": 1,
+    "best_id": "ph.R1.C2",
+    "best_reported": 0.86,
+    "best_private": 0.87202,
+    "accepted_this_round": 2,
+    "submissions": 8,
+    "failed": 3
+   },
+   {
+    "comp": "phoneme",
+    "round": 2,
+    "best_id": "ph.R1.C2",
+    "best_reported": 0.86,
+    "best_private": 0.87202,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 4
+   },
+   {
+    "comp": "phoneme",
+    "round": 3,
+    "best_id": "ph.R1.C2",
+    "best_reported": 0.86,
+    "best_private": 0.87202,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 2
+   },
+   {
+    "comp": "phoneme",
+    "round": 4,
+    "best_id": "ph.R1.C2",
+    "best_reported": 0.86,
+    "best_private": 0.87202,
+    "accepted_this_round": 0,
+    "submissions": 8,
+    "failed": 3
+   }
+  ]
+ },
+ "transfer": null,
+ "boosting_bot": {
+  "competition": "credit-g",
+  "public_n": 100,
+  "private_n": 400,
+  "k_max": 400,
+  "reps": 30,
+  "checkpoints": [
+   1,
+   5,
+   10,
+   20,
+   30,
+   50,
+   75,
+   100,
+   150,
+   200,
+   250,
+   300,
+   350,
+   400
+  ],
+  "boards": {
+   "kaggle": {
+    "reported_public": {
+     "mean": [
+      0.5187,
+      0.6007,
+      0.614,
+      0.6107,
+      0.639,
+      0.6737,
+      0.6937,
+      0.7163,
+      0.76,
+      0.7807,
+      0.8107,
+      0.8343,
+      0.8497,
+      0.8707
+     ],
+     "std": [
+      0.04,
+      0.0348,
+      0.0424,
+      0.0391,
+      0.0365,
+      0.0357,
+      0.0375,
+      0.0357,
+      0.0343,
+      0.0341,
+      0.041,
+      0.034,
+      0.0329,
+      0.0276
+     ]
+    },
+    "true_public": {
+     "mean": [
+      0.5187,
+      0.6007,
+      0.614,
+      0.6107,
+      0.639,
+      0.6737,
+      0.6937,
+      0.7163,
+      0.76,
+      0.7807,
+      0.8107,
+      0.8343,
+      0.8497,
+      0.8707
+     ],
+     "std": [
+      0.04,
+      0.0348,
+      0.0424,
+      0.0391,
+      0.0365,
+      0.0357,
+      0.0375,
+      0.0357,
+      0.0343,
+      0.0341,
+      0.041,
+      0.034,
+      0.0329,
+      0.0276
+     ]
+    },
+    "private": {
+     "mean": [
+      0.5017,
+      0.5417,
+      0.5315,
+      0.5182,
+      0.5286,
+      0.5149,
+      0.52,
+      0.5145,
+      0.515,
+      0.5166,
+      0.5161,
+      0.5119,
+      0.5099,
+      0.5157
+     ],
+     "std": [
+      0.0209,
+      0.0495,
+      0.0391,
+      0.031,
+      0.0278,
+      0.0308,
+      0.0285,
+      0.0318,
+      0.0328,
+      0.0267,
+      0.0261,
+      0.0286,
+      0.0285,
+      0.0228
+     ]
+    }
+   },
+   "ladder": {
+    "reported_public": {
+     "mean": [
+      0.5087,
+      0.5387,
+      0.5637,
+      0.5813,
+      0.5913,
+      0.603,
+      0.6097,
+      0.6173,
+      0.624,
+      0.6293,
+      0.6343,
+      0.6343,
+      0.6343,
+      0.6363
+     ],
+     "std": [
+      0.0442,
+      0.0441,
+      0.0468,
+      0.0482,
+      0.0514,
+      0.0461,
+      0.0422,
+      0.0396,
+      0.0359,
+      0.0349,
+      0.0344,
+      0.0344,
+      0.0344,
+      0.0312
+     ]
+    },
+    "true_public": {
+     "mean": [
+      0.5087,
+      0.5387,
+      0.5637,
+      0.5813,
+      0.5913,
+      0.603,
+      0.6097,
+      0.6173,
+      0.624,
+      0.6293,
+      0.6343,
+      0.6343,
+      0.6343,
+      0.6363
+     ],
+     "std": [
+      0.0442,
+      0.0441,
+      0.0468,
+      0.0482,
+      0.0514,
+      0.0461,
+      0.0422,
+      0.0396,
+      0.0359,
+      0.0349,
+      0.0344,
+      0.0344,
+      0.0344,
+      0.0312
+     ]
+    },
+    "private": {
+     "mean": [
+      0.5024,
+      0.5072,
+      0.5192,
+      0.5274,
+      0.5319,
+      0.5318,
+      0.5294,
+      0.5342,
+      0.5367,
+      0.5368,
+      0.5344,
+      0.5344,
+      0.5344,
+      0.5286
+     ],
+     "std": [
+      0.0231,
+      0.0298,
+      0.037,
+      0.0398,
+      0.042,
+      0.0434,
+      0.0428,
+      0.0441,
+      0.0454,
+      0.0453,
+      0.0468,
+      0.0468,
+      0.0468,
+      0.0449
+     ]
+    }
+   }
+  }
+ },
+ "cache_probe": null,
+ "arena_errors": {},
+ "arena_wall_s": 727.5,
+ "efficiency": {
+  "arena_run": {
+   "calls": 202,
+   "prompt_tokens": 445584,
+   "completion_tokens": 125231,
+   "cached_tokens": 3456,
+   "usd": 0.08215835000000002
+  },
+  "transfer_run": null,
+  "project_total": {
+   "live_calls": 585,
+   "replayed_from_local_cache": 88,
+   "total_tokens": 1498736,
+   "usd": 0.2064,
+   "cached_token_share_reported": 0.003,
+   "by_model": {
+    "nvidia/Nemotron-3.5-Lightning-30B-A3B": {
+     "calls": 526,
+     "prompt_tokens": 1076412,
+     "completion_tokens": 317967,
+     "cached_tokens": 0,
+     "calls_reporting_cached": 0,
+     "usd": 0.11742
+    },
+    "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B": {
+     "calls": 59,
+     "prompt_tokens": 76650,
+     "completion_tokens": 27707,
+     "cached_tokens": 3456,
+     "calls_reporting_cached": 59,
+     "usd": 0.088971
+    }
+   }
+  },
+  "baseline_lr_mean_private": 0.74147,
+  "holdout_private_gain_points_vs_lr": 3.22,
+  "usd_per_private_point": 0.0255
+ },
+ "resampled_selection": {
+  "draws": 2000,
+  "rows": [
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "credit-g",
+    "rule": "kaggle",
+    "n_subs": 19,
+    "reported": 0.7586,
+    "private": 0.71783,
+    "inflation": 0.04076
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "credit-g",
+    "rule": "ladder",
+    "n_subs": 19,
+    "reported": 0.7463,
+    "private": 0.71512,
+    "inflation": 0.03117
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "diabetes",
+    "rule": "kaggle",
+    "n_subs": 20,
+    "reported": 0.79085,
+    "private": 0.76813,
+    "inflation": 0.02272
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "diabetes",
+    "rule": "ladder",
+    "n_subs": 20,
+    "reported": 0.78437,
+    "private": 0.76502,
+    "inflation": 0.01935
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "phoneme",
+    "rule": "kaggle",
+    "n_subs": 12,
+    "reported": 0.89101,
+    "private": 0.89043,
+    "inflation": 0.00057
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "naive",
+    "comp": "phoneme",
+    "rule": "ladder",
+    "n_subs": 12,
+    "reported": 0.89101,
+    "private": 0.89043,
+    "inflation": 0.00057
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "credit-g",
+    "rule": "kaggle",
+    "n_subs": 16,
+    "reported": 0.77894,
+    "private": 0.73702,
+    "inflation": 0.04193
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "credit-g",
+    "rule": "ladder",
+    "n_subs": 16,
+    "reported": 0.76732,
+    "private": 0.72704,
+    "inflation": 0.04028
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "diabetes",
+    "rule": "kaggle",
+    "n_subs": 11,
+    "reported": 0.79573,
+    "private": 0.76963,
+    "inflation": 0.0261
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "diabetes",
+    "rule": "ladder",
+    "n_subs": 11,
+    "reported": 0.789,
+    "private": 0.76817,
+    "inflation": 0.02083
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "phoneme",
+    "rule": "kaggle",
+    "n_subs": 20,
+    "reported": 0.89464,
+    "private": 0.87692,
+    "inflation": 0.01772
+   },
+   {
+    "run": "m2",
+    "seed": 0,
+    "pool": "holdout",
+    "comp": "phoneme",
+    "rule": "ladder",
+    "n_subs": 20,
+    "reported": 0.88989,
+    "private": 0.8765,
+    "inflation": 0.0134
+   }
+  ],
+  "pooled": {
+   "kaggle": {
+    "reported": 0.81829,
+    "private": 0.79333,
+    "inflation": 0.02497,
+    "n_pools": 6
+   },
+   "ladder": {
+    "reported": 0.81132,
+    "private": 0.79038,
+    "inflation": 0.02093,
+    "n_pools": 6
+   }
+  }
+ }
+}

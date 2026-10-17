@@ -206,7 +206,9 @@ def epilogue(open_charts: bool):
         lines.append("Transfer to unseen competitions (private): " + ", ".join(f"{k} {v:.3f}" for k, v in m.items()))
     e = r.get("efficiency")
     if e:
-        lines.append(f"Crusoe: {e['live_calls']} live Nemotron calls, {e['total_tokens']:,} tokens, ~${e['usd']:.2f}")
+        a = e["arena_run"]
+        lines.append(f"Crusoe: arena run {a['calls']} live Nemotron calls, {a['prompt_tokens'] + a['completion_tokens']:,} tokens, "
+                     f"~${a['usd']:.2f}; everything today ~${e['project_total']['usd']:.2f}")
     console.print(Panel("\n".join(lines), title="Results (results/results.json)", border_style="blue"))
     if open_charts and sys.platform == "darwin":
         for name in ("boosting_bot.png", "shakeup.png", "transfer.png"):

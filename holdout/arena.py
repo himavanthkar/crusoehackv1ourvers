@@ -358,10 +358,8 @@ def run_arms(run_id: str, comps: list[str], rounds: int, seed: int = 0, arms=("n
            "arms": {a: o.dump() for a, o in objs.items()}, "llm_totals": Totals.as_dict(), "errors": errors,
            "wall_s": round(time.time() - rec.t0, 1)}
     (run_dir / "arena.json").write_text(json.dumps(out, indent=1, default=str))
-    raw = run_dir / "raw"
-    raw.mkdir(exist_ok=True)
-    for a, o in objs.items():
-        np.savez_compressed(raw / f"preds_{a}.npz", **o.preds)
+    for a, o in objs.items():  # test-set predictions of every scored submission (kept: report.py re-analyses them)
+        np.savez_compressed(run_dir / f"preds_{a}.npz", **o.preds)
     rec({"arm": None, "type": "run_end", "llm_totals": Totals.as_dict(), "errors": errors})
     return out
 
