@@ -1,0 +1,11 @@
+openai>=1.40
+python-dotenv
+rich
+numpy
+pandas
+scikit-learn
+scipy
+matplotlib
+pytest
+certifi
+lightgbm
