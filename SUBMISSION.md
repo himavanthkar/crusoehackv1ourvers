@@ -22,7 +22,8 @@ one round live.
 **Built today:** every file in the repo (see README "What we built" and the commit history).
 
 **Sponsor tech:** Crusoe Managed Inference for every LLM call; NVIDIA Nemotron for every agent role (Lightning 30B-A3B
-researchers, Super 120B curator); prompts laid out for MemoryAlloy prefix reuse.
+researchers, Super 120B curator); prompts laid out for MemoryAlloy prefix reuse; NVIDIA OpenShell sandbox for
+agent-written code (`SANDBOX=openshell`, recorded round in `runs/openshell_r1`).
 
 **Crusoe feedback (draft, edit freely):**
 - The OpenAI-compatible endpoint worked with the stock `openai` SDK; `/v1/models` returning pricing (including the
@@ -30,7 +31,8 @@ researchers, Super 120B curator); prompts laid out for MemoryAlloy prefix reuse.
 - Model ids differ from the docs and blogs (e.g. `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B` vs `nvidia/Nemotron-3.5-Lightning-30B-A3B`
   casing and prefixes), and Nemotron 3 Ultra was listed on the pricing page but not live on our project. A stable alias
   per model family would help.
-- We hit `429 max_requests_limit (orchestrator)` at modest load (two sessions sharing one key, under 30 calls/min).
+- We hit `429 max_requests_limit (orchestrator)` at modest load (under 30 calls/min). After moving this project to its
+  own key, Nemotron Super still returned 429 while Lightning and Super-VL answered, so the limit looks endpoint-wide.
   Returning `x-ratelimit-*` headers or a `Retry-After` would let clients pace correctly instead of guessing.
 - `usage.prompt_tokens_details.cached_tokens` came back `null` for Nemotron Lightning and present for Super. Reporting it
   consistently would make MemoryAlloy savings visible to users.

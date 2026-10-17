@@ -357,6 +357,17 @@ def markdown(res: dict) -> str:
         pk, pl = rs["pooled"]["kaggle"], rs["pooled"]["ladder"]
         L.append(f"| **mean** | | | | {pk['reported']:.3f} / {pk['private']:.3f} / {pk['inflation']:+.3f} | "
                  f"{pl['reported']:.3f} / {pl['private']:.3f} / {pl['inflation']:+.3f} |")
+    o = res.get("openshell_run")
+    if o and o.get("sandbox") == "openshell":
+        L.append(f"\n### NVIDIA OpenShell run (`runs/{o['run_id']}`)\n")
+        L.append(f"One full round on {', '.join(o['comps'])}, both arms, with every agent-written solution executed inside an "
+                 f"OpenShell sandbox: {o['submissions']} submissions, {o['ran_ok']} ran successfully (the rest are researcher code errors), "
+                 f"mean {o['sandbox_seconds_mean']} s per sandbox execution, {o['wall_s']} s wall time.\n")
+        L.append("| Arm | Final pick | Reported public | Private |")
+        L.append("|---|---|---|---|")
+        for arm, f in o["finals"].items():
+            if f.get("id"):
+                L.append(f"| {arm} | {f['id']} | {f['reported']:.3f} | {f['private']:.3f} |")
     b = res.get("boosting_bot")
     if b:
         L.append("\n### Boosting attack (random labels, no skill)\n")
@@ -405,6 +416,7 @@ def build(arena_id: str = "m2", transfer_id: str | None = "transfer") -> dict:
            "transfer": transfer_summary(tr), "boosting_bot": bb, "cache_probe": probe,
            "arena_errors": arena.get("errors"), "arena_wall_s": arena.get("wall_s")}
     res["efficiency"] = efficiency(arena, tr, res["shakeup"])
+    res["openshell_run"] = openshell_summary("openshell_r1")
     res["resampled_selection"] = resampled_selection(RESAMPLE_RUNS or [arena_id])
     C.RESULTS_DIR.mkdir(exist_ok=True)
     (C.RESULTS_DIR / "results.json").write_text(json.dumps(res, indent=1, default=str))
@@ -438,6 +450,23 @@ def extra_seeds(run_ids: list[str]) -> dict | None:
         agg[arm] = {k: {"mean": round(float(np.mean([r[k] for r in rr])), 5), "sd": round(float(np.std([r[k] for r in rr])), 5)}
                     for k in ("reported_public", "private", "inflation")} | {"n": len(rr)}
     return {"rows": rows, "pooled": agg}
+
+
+def openshell_summary(run_id: str) -> dict | None:
+    """A recorded round whose agent code ran inside NVIDIA OpenShell (SANDBOX=openshell)."""
+    a = _load(C.RUNS_DIR / run_id / "arena.json")
+    ev = C.RUNS_DIR / run_id / "events.jsonl"
+    if not a or not ev.exists():
+        return None
+    start = next((json.loads(l) for l in open(ev) if '"run_start"' in l), {})
+    subs = [x for arm in a["arms"].values() for x in arm["subs"]]
+    return {"run_id": run_id, "sandbox": start.get("sandbox"), "comps": a["comps"], "rounds": a["rounds"],
+            "submissions": len(subs), "ran_ok": sum(x["ok"] for x in subs),
+            "sandbox_seconds_mean": round(float(np.mean([x["sandbox_s"] for x in subs if x["kind"] == "code"])), 2),
+            "finals": {arm: {"id": d["finals"].get(a["comps"][0]),
+                             **{k: next((x[k] for x in d["subs"] if x["id"] == d["finals"].get(a["comps"][0])), None)
+                                for k in ("reported", "private")}} for arm, d in a["arms"].items()},
+            "wall_s": a.get("wall_s"), "errors": a.get("errors")}
 
 
 def gate_pooled(run_ids: list[str]) -> dict:

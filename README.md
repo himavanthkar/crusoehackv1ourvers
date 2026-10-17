@@ -47,7 +47,8 @@ flowchart LR
 | Competitions | `holdout/data.py` | 5 OpenML datasets, per-seed split: train 50%, public 100 rows, private the rest, test rows shuffled together like Kaggle |
 | Leaderboards | `holdout/leaderboard.py` | Kaggle mechanism and the parameter-free Ladder implemented from Figure 2 of the paper |
 | Boosting-attack bot | `holdout/boosting_bot.py` | Non-LLM random-label attack from Section 5 of the paper, run against both boards |
-| Sandbox | `holdout/sandbox.py` | Runs agent code in a subprocess, 60 s timeout, stripped env, macOS `sandbox-exec` network deny + socket guard; agents never see test labels |
+| Sandbox | `holdout/sandbox.py` | Runs agent code in a subprocess, 60 s timeout, stripped env, macOS `sandbox-exec` network deny + socket guard; agents never see test labels. `SANDBOX=openshell` runs the same code inside NVIDIA OpenShell instead |
+| OpenShell setup | `holdout/openshell_setup.py` | Creates the `holdout-sbx` OpenShell sandbox and installs pinned Linux wheels offline (the sandbox has no network) |
 | Researcher | `holdout/researcher.py` | One research trajectory; shared-prefix prompt layout for MemoryAlloy; writes `solution.py` or calls `ensemble(ids)` |
 | Curator | `holdout/curator.py` | Rewrites the playbook each round (max 12 rules with evidence), proposes one team-structure change |
 | Gate | `holdout/gate.py` | Plain-Python admission rule: HOLDOUT rules may only cite Ladder-accepted submissions |
@@ -59,8 +60,10 @@ flowchart LR
 | Tests | `tests/` | Ladder/Kaggle properties, sandbox isolation, gate rules, and a sealing test that fails if any agent prompt contains private labels, sealed scores or unseen-competition data |
 
 ### Provenance
-Nothing was imported from our other project built today (`proof-of-done`). The only thing reused is the Crusoe API key
-from its `.env`, and NOTES.md re-verifies the live model list from scratch. Every line in this repo was written today; see the commit history.
+No code was imported from our other project built today (`proof-of-done`). Early runs used that project's Crusoe API key
+(this project now has its own key); NOTES.md re-verifies the live model list from scratch. The OpenShell backend follows
+the same upload / `sandbox exec` pattern as proof-of-done's OpenShell sandbox, but the code here is new and uses its own
+sandbox (`holdout-sbx`). Every line in this repo was written today; see the commit history.
 
 ## How each feature maps to the Version N+1 brief
 
@@ -88,7 +91,7 @@ from `results/results.json`. Nothing in this block is typed by hand.
 2. **The gate changes what the team learns.** Over 2 split seeds the naive curator got 135/135 proposed playbook rules admitted; the HOLDOUT gate admitted 43/76 and stripped 114 citations of submissions whose "gain" the Ladder judged to be noise.
 3. **Learned noise hurts on unseen competitions.** One fresh round on 2 unseen competitions x 2 seeds: submissions that ran: gen-0 9/32, naive-final 2/32, HOLDOUT-final 16/32. Mean private accuracy of the final pick: gen-0 0.780 (4/4 cells with a valid pick), naive-final 0.855 (2/4), HOLDOUT-final 0.814 (4/4). The naive playbook (every reported gain admitted) steered researchers to HistGradientBoosting with native categorical handling; on all-numeric blood-transfusion every naive-final submission failed in the sandbox, in both seeds.
 4. **The final-pick shake-up with real LLM teams was small and mixed** (reported honestly). Pooled over 6 competition x seed cells, inflation of the final pick was +0.028 ± 0.061 (naive) vs +0.033 ± 0.055 (HOLDOUT): no clear difference at this N. Holding the submissions fixed and redrawing the public set 2000 times, the Ladder selection rule cut inflation from +0.027 to +0.021 at a private cost of -0.1 points. LLM submissions are highly correlated, so they are far less adversarial than the boosting attack.
-5. **Cheap on Crusoe.** The full two-arm arena run cost $0.082 (202 live Nemotron calls); everything today including smoke tests $0.22. MemoryAlloy: with a shared prefix, Nemotron Super reported 3456 of 4118 prompt tokens cached (0 with unique prefixes); Lightning's median time-to-first-token was 0.325 s shared vs 0.408 s unique.
+5. **Cheap on Crusoe.** The full two-arm arena run cost $0.082 (202 live Nemotron calls); everything today including smoke tests $0.23. MemoryAlloy: with a shared prefix, Nemotron Super reported 3456 of 4118 prompt tokens cached (0 with unique prefixes); Lightning's median time-to-first-token was 0.325 s shared vs 0.408 s unique.
 
 ### Shake-up: final selection per arm (seed 0)
 
@@ -143,6 +146,15 @@ Each team's real submissions are held fixed; only which 100 test rows are public
 | naive team | phoneme | 1 | 17 | 0.903 / 0.888 / +0.015 | 0.899 / 0.891 / +0.008 |
 | **mean** | | | | 0.814 / 0.788 / +0.027 | 0.807 / 0.786 / +0.021 |
 
+### NVIDIA OpenShell run (`runs/openshell_r1`)
+
+One full round on diabetes, both arms, with every agent-written solution executed inside an OpenShell sandbox: 16 submissions, 10 ran successfully (the rest are researcher code errors), mean 2.35 s per sandbox execution, 19.5 s wall time.
+
+| Arm | Final pick | Reported public | Private |
+|---|---|---|---|
+| naive | db.R1.B2 | 0.890 | 0.739 |
+| holdout | db.R1.D1 | 0.830 | 0.771 |
+
 ### Boosting attack (random labels, no skill)
 
 credit-g, public n=100, private n=400, k=400 random submissions, mean of 30 runs.
@@ -158,9 +170,9 @@ credit-g, public n=100, private n=400, k=400 random submissions, mean of 30 runs
 |---|---|---|---|---|
 | Arena run `m2` (both arms, 3 competitions x 4 rounds) | 202 | 445,584 | 125,231 | $0.082 |
 | Transfer run | 67 | 107,983 | 39,632 | $0.013 |
-| Everything today (incl. smoke tests, aborted runs) | 611 | | | $0.221 |
+| Everything today (incl. smoke tests, aborted runs) | 639 | | | $0.232 |
 
-Cached-token share reported by Crusoe in `usage.prompt_tokens_details`: 0.0028 (Lightning returns `null` for this field, so this undercounts; see the cache probe).
+Cached-token share reported by Crusoe in `usage.prompt_tokens_details`: 0.0027 (Lightning returns `null` for this field, so this undercounts; see the cache probe).
 HOLDOUT final picks beat a plain logistic-regression baseline by 3.22 private-accuracy points on average (baseline 0.741), at $0.0255 of arena inference per point.
 - Cache probe `nvidia/Nemotron-3.5-Lightning-30B-A3B`: median time-to-first-token 0.325 s with a shared ~4118-token prefix vs 0.408 s with unique prefixes; cached_tokens reported: shared [None, None, None, None, None, None], unique [None, None, None, None, None, None].
 - Cache probe `nvidia/NVIDIA-Nemotron-3-Super-120B-A12B`: median time-to-first-token 0.536 s with a shared ~4118-token prefix vs 0.566 s with unique prefixes; cached_tokens reported: shared [3456, 3456, 3456, 3456, 3456, 3456], unique [0, 0, 0, 0, 0, 0].
@@ -187,6 +199,7 @@ cp .env.example .env            # add CRUSOE_API_KEY
 .venv/bin/python -m holdout.report
 .venv/bin/python demo.py --replay runs/m2         # offline replay, press Enter for REVEAL PRIVATE
 .venv/bin/python demo.py --live --rounds 1        # one small live round on Crusoe
+SANDBOX=openshell .venv/bin/python demo.py --live --rounds 1   # same, agent code inside NVIDIA OpenShell
 ```
 
 Replays need no network and no API key. LLM responses are cached on disk (`cache/`, gitignored), so a rerun of the
@@ -200,6 +213,11 @@ same run is free and deterministic.
   works). Nemotron 3 Ultra was not live on our project's `/v1/models`, so the curator uses the largest live Nemotron.
 - **MemoryAlloy prompt design**: every researcher in a round sends a byte-identical prefix (system prompt + tool schema +
   playbook + competition card + leaderboard snapshot) and the researcher-specific part goes last. See the efficiency section.
+- **NVIDIA OpenShell**: with `SANDBOX=openshell`, every agent-written `solution.py` runs inside an OpenShell sandbox
+  (micro-VM, unprivileged `sandbox` user, deny-by-default network, no credentials). Data is uploaded once per split;
+  predictions come back on stdout. `runs/openshell_r1` is a recorded round run this way, and
+  `SANDBOX=openshell python demo.py --live --rounds 1` runs one live. Setup: `python -m holdout.openshell_setup <wheel_dir>`.
+  The main arena runs (`m2`, `m2s1`, `transfer`) used the local sandbox.
 
 ## Datasets and licences
 
@@ -218,6 +236,9 @@ All from OpenML, fetched with `sklearn.datasets.fetch_openml(data_id=...)`. Open
 - **The public leaderboard is deliberately small (n=100).** That is realistic for agent evals and it is what makes
   adaptive overfitting visible. With n=100 the Ladder's significance step is about 0.05 to 0.07, so it also leaks a little
   under a determined attacker (see the boosting chart): it limits overfitting, it does not remove it.
+- **Rate limits.** The curator model (Nemotron Super) returned 429s at times; after 3 throttled attempts a curator call
+  falls back to `nvidia/NVIDIA-Nemotron-3.5-Super-VL` (also Nemotron) and `runs/logs` records which model answered.
+  The fallback was added after the reported arena runs, which used Nemotron Super throughout.
 - **Few seeds, small N.** One split seed per competition for the arms unless stated otherwise; LLM sampling (temperature 0.7) adds variance.
 - **LLM nondeterminism.** Reruns hit the disk cache, so replays are exact, but a fresh run will differ.
 - **Accuracy only**, matching the Ladder paper.
