@@ -34,7 +34,8 @@ def curate(arm_name: str, comp_name: str, round_no: int, playbook: list, round_t
                "This is the last round of this competition: set structure_change to null.")
             + "\nRewrite the playbook now. JSON only.")
     reply = chat(C.CURATOR_MODEL, [{"role": "system", "content": SYSTEM}, {"role": "user", "content": user}],
-                 temperature=C.CURATOR_TEMP, max_tokens=2500, role="curator", tag=f"{arm_name}/{comp_name}/R{round_no}")
+                 temperature=C.CURATOR_TEMP, max_tokens=2500, role="curator", tag=f"{arm_name}/{comp_name}/R{round_no}",
+                 fallback=C.CURATOR_FALLBACK_MODEL)
     data = extract_json(reply.text) or {}
     if not isinstance(data, dict):
         data = {}

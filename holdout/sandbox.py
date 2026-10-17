@@ -70,6 +70,12 @@ class RunResult:
 
 
 def run_solution(code: str, X_train, y_train, X_test, timeout: float = SANDBOX_TIMEOUT_S) -> RunResult:
+    if os.environ.get("SANDBOX", "local").lower() == "openshell":
+        return run_solution_openshell(code, X_train, y_train, X_test, timeout)
+    return run_solution_local(code, X_train, y_train, X_test, timeout)
+
+
+def run_solution_local(code: str, X_train, y_train, X_test, timeout: float = SANDBOX_TIMEOUT_S) -> RunResult:
     with _sem:
         d = tempfile.mkdtemp(prefix="holdout_sbx_")
         try:
@@ -105,6 +111,72 @@ def run_solution(code: str, X_train, y_train, X_test, timeout: float = SANDBOX_T
             return RunResult(False, None, log or f"exit code {p.returncode}", dt)
         finally:
             shutil.rmtree(d, ignore_errors=True)
+
+
+# ---------------------------------------------------------------- NVIDIA OpenShell
+# Same interface, selected by SANDBOX=openshell. Agent code runs inside a persistent OpenShell sandbox (micro-VM,
+# unprivileged user, deny-by-default network, no credentials). Set it up once: `python -m holdout.openshell_setup`.
+OPENSHELL_SANDBOX = os.environ.get("OPENSHELL_SANDBOX", "holdout-sbx")
+_uploaded: set = set()
+_up_lock = threading.Lock()
+
+OS_RUNNER = RUNNER.replace('with open("data.pkl", "rb") as f:', 'with open(sys.argv[1], "rb") as f:').replace(
+    'os.remove("data.pkl")', 'pass').replace(
+    '    np.save("preds.npy", preds)\n    print("OK")',
+    '    import base64\n    print("@@PREDS", base64.b64encode(preds.astype(np.int8).tobytes()).decode())')
+
+
+def _upload_data(X_train, y_train, X_test) -> str:
+    import hashlib
+    blob = pickle.dumps((X_train, np.asarray(y_train), X_test))
+    h = hashlib.sha256(blob).hexdigest()[:16]
+    with _up_lock:
+        if h not in _uploaded:
+            d = tempfile.mkdtemp(prefix="holdout_up_")
+            os.makedirs(os.path.join(d, h))
+            with open(os.path.join(d, h, "data.pkl"), "wb") as f:
+                f.write(blob)
+            r = subprocess.run(["openshell", "sandbox", "upload", "--no-git-ignore", OPENSHELL_SANDBOX, os.path.join(d, h),
+                                "/sandbox/data"], capture_output=True, text=True, timeout=120, cwd=tempfile.gettempdir())
+            shutil.rmtree(d, ignore_errors=True)
+            if r.returncode != 0:
+                raise RuntimeError(f"openshell upload failed: {(r.stderr or r.stdout)[-300:]}")
+            _uploaded.add(h)
+    return f"/sandbox/data/{h}/data.pkl"
+
+
+def run_solution_openshell(code: str, X_train, y_train, X_test, timeout: float = SANDBOX_TIMEOUT_S) -> RunResult:
+    import base64
+    import uuid
+    with _sem:
+        t0 = time.time()
+        try:
+            data = _upload_data(X_train, y_train, X_test)
+        except Exception as e:
+            return RunResult(False, None, f"openshell setup error: {e}", time.time() - t0)
+        d = f"/tmp/hx_{uuid.uuid4().hex[:12]}"
+        b64 = lambda x: base64.b64encode(x.encode()).decode()  # noqa: E731
+        script = (f"mkdir -p {d} && cd {d} && printf %s '{b64('import numpy as np' + chr(10) + 'import pandas as pd' + chr(10) + code)}' "
+                  f"| base64 -d > solution.py && printf %s '{b64(OS_RUNNER)}' | base64 -d > runner.py; "
+                  f"LD_LIBRARY_PATH=/sandbox/vendor/_libs PYTHONPATH={d}:/sandbox/vendor HOME={d} OMP_NUM_THREADS=1 "
+                  f"PYTHONHASHSEED=0 PYTHONDONTWRITEBYTECODE=1 timeout -s KILL {int(timeout)} python3 runner.py {data} 2>&1 "
+                  f"| tail -c 200000; echo @@RC $?; cd / && rm -rf {d}")
+        cmd = ["openshell", "sandbox", "exec", OPENSHELL_SANDBOX, "--no-tty", "--no-login-shell",
+               "--timeout", str(int(timeout) + 30), "--", "sh", "-c", script]
+        try:
+            p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 60, cwd=tempfile.gettempdir())
+        except subprocess.TimeoutExpired:
+            return RunResult(False, None, "TIMEOUT (openshell exec)", time.time() - t0, True)
+        dt = time.time() - t0
+        out = p.stdout or ""
+        if "@@PREDS" in out:
+            enc = out.split("@@PREDS", 1)[1].split()[0]
+            preds = np.frombuffer(base64.b64decode(enc), dtype=np.int8).astype(int)
+            if len(preds) == len(X_test):
+                return RunResult(True, preds, "OK (openshell)", dt)
+        log = out.split("@@PREDS")[0][-2000:] or (p.stderr or "")[-2000:]
+        timed_out = dt >= timeout and "Killed" in log or "@@RC 137" in out
+        return RunResult(False, None, ("TIMEOUT\n" if timed_out else "") + log, dt, timed_out)
 
 
 BASELINE = '''

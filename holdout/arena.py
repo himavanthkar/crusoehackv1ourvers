@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import os
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -332,7 +333,7 @@ def run_arms(run_id: str, comps: list[str], rounds: int, seed: int = 0, arms=("n
         rec.listeners.append(on_event)
     competitions = [make_competition(c, seed) for c in comps]
     rec({"arm": None, "type": "run_start", "run_id": run_id, "comps": comps, "rounds": rounds, "seed": seed,
-         "researcher_model": C.RESEARCHER_MODEL, "curator_model": C.CURATOR_MODEL,
+         "researcher_model": C.RESEARCHER_MODEL, "curator_model": C.CURATOR_MODEL, "sandbox": os.environ.get("SANDBOX", "local"),
          "public_n": {c.name: int(c.is_public.sum()) for c in competitions},
          "private_n": {c.name: int((~c.is_public).sum()) for c in competitions}})
     objs = {a: Arm(a, ARMS[a][0], ARMS[a][1], run_dir, rec) for a in arms}

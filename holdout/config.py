@@ -20,6 +20,8 @@ CRUSOE_API_KEY = os.getenv("CRUSOE_API_KEY", "")
 # project, so the curator uses the largest live Nemotron (Super 120B); researchers use Lightning 30B-A3B.
 RESEARCHER_MODEL = os.getenv("RESEARCHER_MODEL", "nvidia/Nemotron-3.5-Lightning-30B-A3B")
 CURATOR_MODEL = os.getenv("CURATOR_MODEL", "nvidia/NVIDIA-Nemotron-3-Super-120B-A12B")
+# used only when the curator model keeps returning 429 (shared key); also a Nemotron, with its own rate limit
+CURATOR_FALLBACK_MODEL = os.getenv("CURATOR_FALLBACK_MODEL", "nvidia/NVIDIA-Nemotron-3.5-Super-VL")
 RESEARCHER_TEMP = 0.7
 CURATOR_TEMP = 0.2
 

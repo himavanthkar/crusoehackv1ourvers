@@ -76,7 +76,7 @@ def _log(row: dict) -> None:
 
 
 def chat(model: str, messages: list[dict], *, temperature: float, max_tokens: int = 4096,
-         role: str = "", tag: str = "", use_cache: bool = True) -> Reply:
+         role: str = "", tag: str = "", use_cache: bool = True, fallback: str | None = None) -> Reply:
     h = _hash(model, messages, temperature)
     path = C.CACHE_DIR / f"{h}.json"
     with _lock:
@@ -90,15 +90,15 @@ def chat(model: str, messages: list[dict], *, temperature: float, max_tokens: in
             return Reply(d["text"], d["prompt_tokens"], d["completion_tokens"], d.get("cached_tokens"), 0.0, True, model)
         if Totals.usd > C.BUDGET_USD:
             raise BudgetExceeded(f"estimated spend ${Totals.usd:.2f} passed BUDGET_USD=${C.BUDGET_USD}")
-        r = _call(model, messages, temperature, max_tokens)
-        usd = cost(model, r.prompt_tokens, r.completion_tokens, r.cached_tokens)
+        r = _call(model, messages, temperature, max_tokens, fallback=fallback)
+        usd = cost(r.model, r.prompt_tokens, r.completion_tokens, r.cached_tokens)
         with _lock:
             Totals.calls += 1
             Totals.prompt_tokens += r.prompt_tokens
             Totals.completion_tokens += r.completion_tokens
             Totals.cached_tokens += r.cached_tokens or 0
             Totals.usd += usd
-        _log({"ts": time.time(), "role": role, "tag": tag, "model": model, "hash": h[:16], "from_cache": False,
+        _log({"ts": time.time(), "role": role, "tag": tag, "model": r.model, "requested_model": model, "hash": h[:16], "from_cache": False,
               "prompt_tokens": r.prompt_tokens, "completion_tokens": r.completion_tokens,
               "cached_tokens": r.cached_tokens, "latency_s": round(r.latency_s, 2), "usd": round(usd, 6)})
         if use_cache and r.text.strip():
@@ -139,10 +139,16 @@ class _Pacer:
 _pacer = _Pacer()
 
 
-def _call(model: str, messages: list[dict], temperature: float, max_tokens: int, tries: int = 12) -> Reply:
+def _call(model: str, messages: list[dict], temperature: float, max_tokens: int, tries: int = 12,
+          fallback: str | None = None) -> Reply:
+    """Retries with backoff. If `fallback` is given and the model is rate-limited 3 times (the key is shared with
+    another session), switch to the fallback model, which has its own per-model limit. Reply.model says who answered."""
     extra = {"chat_template_kwargs": {"enable_thinking": False}} if "emotron" in model else {}
     last = None
+    throttled = 0
     for attempt in range(tries):
+        if fallback and throttled >= 3 and model != fallback:
+            model = fallback
         _pacer.wait(model)
         with _sem:
             t0 = time.time()
@@ -160,6 +166,7 @@ def _call(model: str, messages: list[dict], temperature: float, max_tokens: int,
                 last, dt = e, None
                 if isinstance(e, openai.RateLimitError):
                     _pacer.throttled(model)
+                    throttled += 1
         if dt is None:
             time.sleep(min(45.0, 1.5 * 2 ** attempt) + random.uniform(0, 2.0))
             continue
